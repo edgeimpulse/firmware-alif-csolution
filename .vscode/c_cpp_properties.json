@@ -1,0 +1,107 @@
+{
+    "configurations": [
+        {
+            "name": "alpha2_appkit+HE",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+
+            "compileCommands": "${workspaceFolder}/tmp/alpha2_appkit/HE/compile_commands.json",
+            "customConfigurationVariables": {
+                "core": "HE",
+                "device": "alpha2_appkit"
+              },
+        },
+        {
+            "name": "alpha2_appkit+HP",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+
+            "compileCommands": "${workspaceFolder}/tmp/alpha2_appkit/HP/compile_commands.json",
+            "customConfigurationVariables": {
+                "core": "HP",
+                "device": "alpha2_appkit"
+              },
+        },
+        {
+            "name": "gen2_devkit+HE",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+
+            "compileCommands": "${workspaceFolder}/tmp/gen2_devkit/HE/compile_commands.json",
+            "customConfigurationVariables": {
+                "core": "HE",
+                "device": "gen2_devkit"
+              }
+        },
+        {
+            "name": "gen2_devkit+HP",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+
+            "compileCommands": "${workspaceFolder}/tmp/gen2_devkit/HP/compile_commands.json",
+            "customConfigurationVariables": {
+                "core": "HP",
+                "device": "gen2_devkit"
+              }
+        },
+        {
+            "name": "gen2_appkit+HE",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+
+            "compileCommands": "${workspaceFolder}/tmp/gen2_appkit/HE/compile_commands.json",
+            "customConfigurationVariables": {
+                "core": "HE",
+                "device": "gen2_appkit"
+              }
+        },
+        {
+            "name": "gen2_appkit+HP",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+
+            "compileCommands": "${workspaceFolder}/tmp/gen2_appkit/HP/compile_commands.json",
+            "customConfigurationVariables": {
+                "core": "HP",
+                "device": "gen2_appkit"
+              }
+        }
+    ],
+    "version": 4
+}
