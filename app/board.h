@@ -25,9 +25,9 @@
 //     <3=> Alif Development Kit (Generation 2 Silicon Rev B / Internal CoB Board)
 //     <4=> Alif Development Kit (Generation 2 Silicon RevBA / Board Rev A, B, C)
 //     <5=> Alif AI/ML Application Kit (Generation 2 Silicon Rev B / Board Rev A)
-
-// Moved to *.cproject.yaml
-// #define BOARD_ALIF_DEVKIT_VARIANT       4
+#ifndef BOARD_ALIF_DEVKIT_VARIANT
+#define BOARD_ALIF_DEVKIT_VARIANT       5
+#endif
 
 #if (BOARD_ALIF_DEVKIT_VARIANT == 0)
 #define BOARD_IS_ALIF_DEVKIT_VARIANT

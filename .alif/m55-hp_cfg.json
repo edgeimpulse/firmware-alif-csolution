@@ -1,6 +1,6 @@
 {
   "USER_APP": {
-    "binary": "alif-img.bin",
+    "binary": "alif-img.elf",
     "mramAddress": "0x80000000",
     "version": "1.0.0",
     "cpu_id": "M55_HP",
