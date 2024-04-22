@@ -1,39 +1,41 @@
 solution:
   misc:
     - C:
-      - -std=c99
-      - -Og
-      - -fdata-sections
-      - -mfloat-abi=hard
-      - -mfpu=fpv5-sp-d16
-      - -mthumb
-      - -mcpu=cortex-m55
-      - -funsigned-char
+        - -std=c99
+        - -Og
+        - -fdata-sections
+        - -mfloat-abi=hard
+        - -mfpu=fpv5-sp-d16
+        - -mthumb
+        - -mcpu=cortex-m55
+        - -funsigned-char
+        - -flax-vector-conversions
     - Link:
-      #- --specs=nosys.specs
-      - --specs=nano.specs
-      - --specs=rdimon.specs
-      - --entry=Reset_Handler
-      - -Wl,-Map=.map,--cref,-print-memory-usage,--gc-sections
-      #- -mfloat-abi=hard
+        #- --specs=nosys.specs
+        - --specs=nano.specs
+        - --specs=rdimon.specs
+        - --entry=Reset_Handler
+        - -Wl,-Map=.map,--cref,-print-memory-usage,--gc-sections
+        #- -mfloat-abi=hard
         # generate linker map
         # output a cross reference table
         # print memory usage to console
         # exclude unused sections from the iamge
         # suppress executable write segment warnings (used for ITCM)
     - Library:
-      - -lm
+        - -lm
     - CPP:
-      - -std=c++11
-      - -Og
-      - -fdata-sections
-      - -mfloat-abi=hard
-      - -mfpu=fpv5-sp-d16
-      - -mthumb
-      - -mcpu=cortex-m55
-      - -fno-rtti
-      - -fno-unwind-tables
-      # - -fno-exceptions
+        - -std=c++11
+        - -Og
+        - -fdata-sections
+        - -mfloat-abi=hard
+        - -mfpu=fpv5-sp-d16
+        - -mthumb
+        - -mcpu=cortex-m55
+        - -fno-rtti
+        - -fno-unwind-tables
+        - -flax-vector-conversions
+        # - -fno-exceptions
   target-types:
     - device: Alif Semiconductor::AE722F80F55D5AS:M55_HE
       type: HE
@@ -49,7 +51,9 @@ solution:
         - "CORE_M55_HP"
   packs:
     - pack: AlifSemiconductor::Ensemble@1.1.1
-    - pack: ARM::CMSIS
+    - pack: ARM::CMSIS@6.0.0
+    - pack: ARM::CMSIS-DSP@1.15.0
+    - pack: ARM::CMSIS-NN@4.1.0
   projects:
     - project: gen2_devkit.cproject.yaml
     - project: gen2_appkit.cproject.yaml

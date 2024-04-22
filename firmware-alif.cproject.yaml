@@ -9,10 +9,10 @@ project:
           for-context: +HP
     - group: Board
       files:
-   #     - file: libs/board/devkit_gen2/board_init.c
-   #       for-context: .devkit_gen2
+        #     - file: libs/board/devkit_gen2/board_init.c
+        #       for-context: .devkit_gen2
         - file: libs/board/appkit_gen2/board_init.c
-   #       for-context: .appkit_gen2
+  #       for-context: .appkit_gen2
   add-path:
     - app/
     - libs/board/
@@ -22,7 +22,8 @@ project:
     # needed for Alif Ensemble support
     - component: AlifSemiconductor::Device:Startup&C Startup
     - component: ARM::CMSIS:CORE
-    
+    - component: ARM::CMSIS:DSP
+
     # peripheral drivers & middleware, uncomment as needed
     # - component: AlifSemiconductor::Device:SOC Peripherals:ADC
     # - component: AlifSemiconductor::Device:SOC Peripherals:Analog Config
@@ -48,7 +49,7 @@ project:
     # - component: AlifSemiconductor::Device:SOC Peripherals:USART
     # - component: AlifSemiconductor::Device:SOC Peripherals:UTIMER
     # - component: AlifSemiconductor::Device:SOC Peripherals:WDT
-    
+
     # - component: AlifSemiconductor::Device:OSPI XIP:core
     # - component: AlifSemiconductor::Device:OSPI XIP:utility
     # - component: AlifSemiconductor::Device:SE Services:MHU Driver
