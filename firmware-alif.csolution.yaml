@@ -37,13 +37,13 @@ solution:
         - -flax-vector-conversions
         # - -fno-exceptions
   target-types:
-    - device: Alif Semiconductor::AE722F80F55D5AS:M55_HE
+    - device: Alif Semiconductor::AE722F80F55D5LS:M55_HE
       type: HE
       compiler: GCC
       debug: "on"
       define:
         - "CORE_M55_HE"
-    - device: Alif Semiconductor::AE722F80F55D5AS:M55_HP
+    - device: Alif Semiconductor::AE722F80F55D5LS:M55_HP
       type: HP
       compiler: GCC
       debug: "on"
@@ -51,9 +51,10 @@ solution:
         - "CORE_M55_HP"
   packs:
     - pack: AlifSemiconductor::Ensemble@1.1.1
-    - pack: ARM::CMSIS@6.0.0
-    - pack: ARM::CMSIS-DSP@1.15.0
-    - pack: ARM::CMSIS-NN@4.1.0
+    - pack: ARM::CMSIS@5.9.0
+    - pack: ARM::CMSIS-DSP@1.11.0
+    - pack: ARM::CMSIS-NN@4.0.0
+    - pack: EdgeImpulse::EI-SDK@1.49.9
   projects:
     - project: gen2_devkit.cproject.yaml
     - project: gen2_appkit.cproject.yaml
