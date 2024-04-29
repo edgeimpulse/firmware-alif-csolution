@@ -25,6 +25,7 @@ project:
       for-compiler: GCC
       for-context: +HP
   add-path:
+    - ./
     - app/
     - libs/board/
     - libs/common_app_utils/logging
