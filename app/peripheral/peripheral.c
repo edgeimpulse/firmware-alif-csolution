@@ -14,9 +14,18 @@
  *
  */
 
-#ifndef _EI_MAIN_H_
-#define _EI_MAIN_H_
+#include "peripheral.h"
+#include "board.h"
+#include "se_services_port.h"
 
-extern void ei_main(void);
+/**
+ * @brief 
+ * 
+ */
+void peripheral_init(void)
+{
+    BOARD_Pinmux_Init();
 
-#endif
+    /* Initialize the SE services */
+    se_services_port_init();
+}

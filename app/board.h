@@ -57,6 +57,10 @@
 // <i> Default: E43RB_FW405
 #define BOARD_ILI9806E_PANEL_VARIANT    0
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 void BOARD_Pinmux_Init();
 void BOARD_Clock_Init();
 void BOARD_Power_Init();
@@ -87,6 +91,10 @@ void BOARD_BUTTON1_GetState(BOARD_BUTTON_STATE *state);
 void BOARD_BUTTON2_GetState(BOARD_BUTTON_STATE *state);
 void BOARD_LED1_Control(BOARD_LED_STATE state);
 void BOARD_LED2_Control(BOARD_LED_STATE state);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif
 #endif

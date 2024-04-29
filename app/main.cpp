@@ -17,10 +17,11 @@
 #include "RTE_Components.h"
 #include CMSIS_device_header
 #include "ei_main.h"
+#include "peripheral/peripheral.h"
 
 int main (void)
 {
-    ei_init();
+    peripheral_init();
 
     ei_main();
 

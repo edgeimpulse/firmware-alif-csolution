@@ -14,9 +14,17 @@
  *
  */
 
-#ifndef _EI_MAIN_H_
-#define _EI_MAIN_H_
+#ifndef _PERIPHERAL_H_
+#define _PERIPHERAL_H_
 
-extern void ei_main(void);
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
+extern void peripheral_init(void);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif

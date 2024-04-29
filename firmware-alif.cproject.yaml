@@ -5,33 +5,18 @@ project:
       files:
         - file: app/main.cpp
         - file: app/ei_main.cpp
+        - file: app/ingestion-sdk-platform/alif-e7/ei_classifier_porting.cpp
 
     - group: Board
       files:
         #     - file: libs/board/devkit_gen2/board_init.c
         #       for-context: .devkit_gen2
+        - file: app/peripheral/peripheral.c
         - file: libs/board/appkit_gen2/board_init.c
           #for-context: .appkit_gen2
-        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/source/timer_ensemble.c
-        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/source/retarget_ensemble.c
-        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/source/platform_drivers.c
-        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/source/tracelib.c
-        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/source/fault_handler.c
-        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/services_lib/services_lib/services_main.c
-        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/services_lib/services_lib/services_lib_interface.c
-        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/services_lib/services_lib/services_host_handler.c
-        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/services_lib/services_lib/services_host_system.c
-        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/services_lib/drivers/src/mhu_driver.c
-        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/services_lib/drivers/src/mhu_sender.c
-        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/services_lib/drivers/src/mhu_receiver.c
-        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/hal.c
-        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/components/image/source/ensemble/image_ensemble.c
-        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/components/lcd/source/lcd_img.c
-        # - file: dependencies/alif_ml-embedded-evaluation-kit/dependencies/cmsis-ensemble-a/Device/M55_HP/Source/system_utils.c
-        #  for-context: +HP
-        # - file: dependencies/alif_ml-embedded-evaluation-kit/dependencies/cmsis-ensemble-a/Device/M55_HE/Source/system_utils.c
-        #  for-context: +HE
-  #       for-context: .appkit_gen2
+        - file: libs/common_app_utils/logging/uart_tracelib.c
+        - file: libs/common_app_utils/logging/retarget.c
+        - file: libs/common_app_utils/fault_handler/fault_handler.c
   linker:
     - script: link-scripts/gcc_M55_HE.ld
       for-compiler: GCC
@@ -42,16 +27,8 @@ project:
   add-path:
     - app/
     - libs/board/
-    # - dependencies/alif_ml-embedded-evaluation-kit/source/hal/include
-    # - dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/include
-    # - dependencies/alif_ml-embedded-evaluation-kit/source/log/include
-    # - dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/components/platform_pmu/include
-    # - dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/components/lcd/include
-    # - dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/components/audio/include
-    # - dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/components/image/include
-    # - dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/services_lib/include
-    # - dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/components/image/source/ensemble/include
-    # - dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/services_lib/include
+    - libs/common_app_utils/logging
+    - libs/common_app_utils/fault_handler
   define:
     - define BOARD_ALIF_DEVKIT_VARIANT: 5
 
@@ -94,7 +71,7 @@ project:
     # - component: AlifSemiconductor::Device:SOC Peripherals:RTC
     # - component: AlifSemiconductor::Device:SOC Peripherals:SDMMC
     # - component: AlifSemiconductor::Device:SOC Peripherals:SPI
-    # - component: AlifSemiconductor::Device:SOC Peripherals:USART
+    - component: AlifSemiconductor::Device:SOC Peripherals:USART
     # - component: AlifSemiconductor::Device:SOC Peripherals:UTIMER
     # - component: AlifSemiconductor::Device:SOC Peripherals:WDT
 

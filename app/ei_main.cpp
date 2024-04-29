@@ -15,32 +15,7 @@
  */
 
 #include "ei_main.h"
-#include "board.h"
-//#include "hal.h"
 #include "edge-impulse-sdk/porting/ei_classifier_porting.h"
-#include "se_services_port.h"
-
-/**
- * @brief 
- * 
- */
-void ei_init(void)
-{
-    //init_trigger_rx();
-    //hal_platform_init();
-
-    BOARD_Pinmux_Init();
-
-    /* Initialize the SE services */
-    se_services_port_init();
-#if 0
-    /* Initialise the camera */
-    int err = hal_image_init();
-    if (0 != err) {
-        ei_printf("hal_image_init failed with error: %d\n", err);
-    }
-#endif
-}
 
 /**
  * @brief 
@@ -48,5 +23,10 @@ void ei_init(void)
  */
 void ei_main(void)
 {
+    ei_printf("Type AT+HELP to see a list of commands.\r\n");
+    ei_printf("Starting main loop\r\n");
 
+    while(1) {
+
+    }
 }
