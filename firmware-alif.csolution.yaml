@@ -16,18 +16,20 @@ solution:
       #debug: "on"
       define:
         - "CORE_M55_HP"
+
   define:
     - UNICODE
     - _UNICODE
+    
   build-types:
     - type: debug
       optimize: speed
       debug: on
       define:
         - _DEBUG
-    - type: release
-      optimize: speed
-      debug: off
+    #- type: release
+    #  optimize: speed
+    #  debug: off
 
   packs:
     - pack: AlifSemiconductor::Ensemble@1.1.1

@@ -19,6 +19,7 @@
 #include "se_services_port.h"
 #include <stdio.h>
 #include "uart_tracelib.h"
+#include "camera.h"
 
 static void clock_init(void);
 static void uart_callback(uint32_t event);
@@ -39,6 +40,8 @@ void peripheral_init(void)
     tracelib_init(NULL, uart_callback);
 
     clock_init();
+
+    camera_init();
 }
 
 /**

@@ -12,6 +12,7 @@ project:
         #     - file: libs/board/devkit_gen2/board_init.c
         #       for-context: .devkit_gen2
         - file: app/peripheral/peripheral.c
+        - file: app/peripheral/camera.c
         - file: libs/board/appkit_gen2/board_init.c
           #for-context: .appkit_gen2
         - file: libs/common_app_utils/logging/uart_tracelib.c
@@ -48,7 +49,7 @@ project:
     # - component: AlifSemiconductor::Device:SOC Peripherals:ADC
     # - component: AlifSemiconductor::Device:SOC Peripherals:CAN-FD
     # - component: AlifSemiconductor::Device:SOC Peripherals:CDC
-    # - component: AlifSemiconductor::Device:SOC Peripherals:CPI
+    - component: AlifSemiconductor::Device:SOC Peripherals:CPI
     # - component: AlifSemiconductor::Device:SOC Peripherals:CRC
     # - component: AlifSemiconductor::Device:SOC Peripherals:DAC
     # - component: AlifSemiconductor::Device:SOC Peripherals:DMA
@@ -56,15 +57,15 @@ project:
     - component: AlifSemiconductor::Device:SOC Peripherals:GPIO
     # - component: AlifSemiconductor::Device:SOC Peripherals:HSCMP
     - component: AlifSemiconductor::Device:SOC Peripherals:HWSEM
-    # - component: AlifSemiconductor::Device:SOC Peripherals:I2C
+    - component: AlifSemiconductor::Device:SOC Peripherals:I2C
     # - component: AlifSemiconductor::Device:SOC Peripherals:I2C_I3C
     # - component: AlifSemiconductor::Device:SOC Peripherals:I2S
     # - component: AlifSemiconductor::Device:SOC Peripherals:I3C
     # - component: AlifSemiconductor::Device:SOC Peripherals:LPI2C
     # - component: AlifSemiconductor::Device:SOC Peripherals:LPTIMER
     # - component: AlifSemiconductor::Device:SOC Peripherals:MHU
-    # - component: AlifSemiconductor::Device:SOC Peripherals:MIPI CSI2
-    # - component: AlifSemiconductor::Device:SOC Peripherals:MIPI DSI
+    - component: AlifSemiconductor::Device:SOC Peripherals:MIPI CSI2
+    - component: AlifSemiconductor::Device:SOC Peripherals:MIPI DSI
     # - component: AlifSemiconductor::Device:SOC Peripherals:MRAM
     # - component: AlifSemiconductor::Device:SOC Peripherals:OSPI
     # - component: AlifSemiconductor::Device:SOC Peripherals:PDM
@@ -84,14 +85,14 @@ project:
     - component: AlifSemiconductor::Device:SE runtime Services:Initialization Helper&Source
 
     # - component: AlifSemiconductor::BSP:External peripherals:CAMERA Sensor MT9M114
-    # - component: AlifSemiconductor::BSP:External peripherals:CAMERA Sensor ARX3A0
+    - component: AlifSemiconductor::BSP:External peripherals:CAMERA Sensor ARX3A0
     # - component: AlifSemiconductor::BSP:External peripherals:Ethernet PHY
     # - component: AlifSemiconductor::BSP:External peripherals:GT911 Touch Controller
-    # - component: AlifSemiconductor::BSP:External peripherals:ILI9806E LCD panel
+    - component: AlifSemiconductor::BSP:External peripherals:ILI9806E LCD panel
     # - component: AlifSemiconductor::BSP:External peripherals:OSPI Flash ISSI
 
   output:
-    base-name: $Project$
+    base-name: $Project$-$TargetType$
     type:
       - elf
       - bin
