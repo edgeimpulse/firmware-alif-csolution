@@ -14,24 +14,39 @@
  *
  */
 
-#include "RTE_Components.h"
-#include CMSIS_device_header
 #include "ei_main.h"
+#include "board.h"
+//#include "hal.h"
+#include "edge-impulse-sdk/porting/ei_classifier_porting.h"
+#include "se_services_port.h"
 
-int main (void)
+/**
+ * @brief 
+ * 
+ */
+void ei_init(void)
 {
-    ei_init();
+    //init_trigger_rx();
+    //hal_platform_init();
 
-    ei_main();
+    BOARD_Pinmux_Init();
 
-    while (1) __WFI();
-
-    return 0;
+    /* Initialize the SE services */
+    se_services_port_init();
+#if 0
+    /* Initialise the camera */
+    int err = hal_image_init();
+    if (0 != err) {
+        ei_printf("hal_image_init failed with error: %d\n", err);
+    }
+#endif
 }
 
-// Stubs to suppress missing stdio definitions for nosys
-#define TRAP_RET_ZERO  {__BKPT(0); return 0;}
-int _close(int val) TRAP_RET_ZERO
-int _lseek(int val0, int val1, int val2) TRAP_RET_ZERO
-int _read(int val0, char * val1, int val2) TRAP_RET_ZERO
-int _write(int val0, char * val1, int val2) TRAP_RET_ZERO
+/**
+ * @brief 
+ * 
+ */
+void ei_main(void)
+{
+
+}

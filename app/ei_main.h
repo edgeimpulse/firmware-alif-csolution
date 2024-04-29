@@ -14,24 +14,10 @@
  *
  */
 
-#include "RTE_Components.h"
-#include CMSIS_device_header
-#include "ei_main.h"
+#ifndef _EI_MAIN_H_
+#define _EI_MAIN_H_
 
-int main (void)
-{
-    ei_init();
+extern void ei_init(void);
+extern void ei_main(void);
 
-    ei_main();
-
-    while (1) __WFI();
-
-    return 0;
-}
-
-// Stubs to suppress missing stdio definitions for nosys
-#define TRAP_RET_ZERO  {__BKPT(0); return 0;}
-int _close(int val) TRAP_RET_ZERO
-int _lseek(int val0, int val1, int val2) TRAP_RET_ZERO
-int _read(int val0, char * val1, int val2) TRAP_RET_ZERO
-int _write(int val0, char * val1, int val2) TRAP_RET_ZERO
+#endif

@@ -1,60 +1,109 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Open-CMSIS-Pack/devtools/tools/projmgr/2.3.0/tools/projmgr/schemas/cproject.schema.json
 project:
   groups:
     - group: App
       files:
         - file: app/main.cpp
-        - file: app/gcc_M55_HE.ld
-          for-context: +HE
-        - file: app/gcc_M55_HP.ld
-          for-context: +HP
+        - file: app/ei_main.cpp
+
     - group: Board
       files:
         #     - file: libs/board/devkit_gen2/board_init.c
         #       for-context: .devkit_gen2
         - file: libs/board/appkit_gen2/board_init.c
+          #for-context: .appkit_gen2
+        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/source/timer_ensemble.c
+        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/source/retarget_ensemble.c
+        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/source/platform_drivers.c
+        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/source/tracelib.c
+        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/source/fault_handler.c
+        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/services_lib/services_lib/services_main.c
+        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/services_lib/services_lib/services_lib_interface.c
+        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/services_lib/services_lib/services_host_handler.c
+        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/services_lib/services_lib/services_host_system.c
+        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/services_lib/drivers/src/mhu_driver.c
+        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/services_lib/drivers/src/mhu_sender.c
+        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/services_lib/drivers/src/mhu_receiver.c
+        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/hal.c
+        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/components/image/source/ensemble/image_ensemble.c
+        # - file: dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/components/lcd/source/lcd_img.c
+        # - file: dependencies/alif_ml-embedded-evaluation-kit/dependencies/cmsis-ensemble-a/Device/M55_HP/Source/system_utils.c
+        #  for-context: +HP
+        # - file: dependencies/alif_ml-embedded-evaluation-kit/dependencies/cmsis-ensemble-a/Device/M55_HE/Source/system_utils.c
+        #  for-context: +HE
   #       for-context: .appkit_gen2
+  linker:
+    - script: link-scripts/gcc_M55_HE.ld
+      for-compiler: GCC
+      for-context: +HE
+    - script: link-scripts/gcc_M55_HP.ld
+      for-compiler: GCC
+      for-context: +HP
   add-path:
     - app/
     - libs/board/
+    # - dependencies/alif_ml-embedded-evaluation-kit/source/hal/include
+    # - dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/include
+    # - dependencies/alif_ml-embedded-evaluation-kit/source/log/include
+    # - dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/components/platform_pmu/include
+    # - dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/components/lcd/include
+    # - dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/components/audio/include
+    # - dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/components/image/include
+    # - dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/services_lib/include
+    # - dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/components/image/source/ensemble/include
+    # - dependencies/alif_ml-embedded-evaluation-kit/source/hal/source/platform/ensemble/services_lib/include
   define:
-    - define BOARD_ALIF_DEVKIT_VARIANT: 4
+    - define BOARD_ALIF_DEVKIT_VARIANT: 5
+
+  #packs:
+  #  - pack: AlifSemiconductor::Ensemble@1.1.1
+
   components:
     # needed for Alif Ensemble support
     - component: AlifSemiconductor::Device:Startup&C Startup
     - component: ARM::CMSIS:CORE
     - component: ARM::CMSIS:DSP
+    - component: EdgeImpulse::EdgeImpulse:SDK
+    - component: ARM::CMSIS:NN Lib@4.0.0
 
     # peripheral drivers & middleware, uncomment as needed
     # - component: AlifSemiconductor::Device:SOC Peripherals:ADC
-    # - component: AlifSemiconductor::Device:SOC Peripherals:Analog Config
-    # - component: AlifSemiconductor::Device:SOC Peripherals:CAMERA Controller
-    # - component: AlifSemiconductor::Device:SOC Peripherals:CDC200
+    # - component: AlifSemiconductor::Device:SOC Peripherals:CAN-FD
+    # - component: AlifSemiconductor::Device:SOC Peripherals:CDC
+    # - component: AlifSemiconductor::Device:SOC Peripherals:CPI
     # - component: AlifSemiconductor::Device:SOC Peripherals:CRC
-    # - component: AlifSemiconductor::Device:SOC Peripherals:Comparator
     # - component: AlifSemiconductor::Device:SOC Peripherals:DAC
     # - component: AlifSemiconductor::Device:SOC Peripherals:DMA
     # - component: AlifSemiconductor::Device:SOC Peripherals:Ethernet MAC
     - component: AlifSemiconductor::Device:SOC Peripherals:GPIO
-    # - component: AlifSemiconductor::Device:SOC Peripherals:HWSEM
+    # - component: AlifSemiconductor::Device:SOC Peripherals:HSCMP
+    - component: AlifSemiconductor::Device:SOC Peripherals:HWSEM
+    # - component: AlifSemiconductor::Device:SOC Peripherals:I2C
+    # - component: AlifSemiconductor::Device:SOC Peripherals:I2C_I3C
     # - component: AlifSemiconductor::Device:SOC Peripherals:I2S
     # - component: AlifSemiconductor::Device:SOC Peripherals:I3C
+    # - component: AlifSemiconductor::Device:SOC Peripherals:LPI2C
     # - component: AlifSemiconductor::Device:SOC Peripherals:LPTIMER
+    # - component: AlifSemiconductor::Device:SOC Peripherals:MHU
     # - component: AlifSemiconductor::Device:SOC Peripherals:MIPI CSI2
     # - component: AlifSemiconductor::Device:SOC Peripherals:MIPI DSI
-    # - component: AlifSemiconductor::Device:SOC Peripherals:MRAM Flash
-    # - component: AlifSemiconductor::Device:SOC Peripherals:OSPI Controller
+    # - component: AlifSemiconductor::Device:SOC Peripherals:MRAM
+    # - component: AlifSemiconductor::Device:SOC Peripherals:OSPI
+    # - component: AlifSemiconductor::Device:SOC Peripherals:PDM
     - component: AlifSemiconductor::Device:SOC Peripherals:PINCONF
     # - component: AlifSemiconductor::Device:SOC Peripherals:RTC
+    # - component: AlifSemiconductor::Device:SOC Peripherals:SDMMC
     # - component: AlifSemiconductor::Device:SOC Peripherals:SPI
     # - component: AlifSemiconductor::Device:SOC Peripherals:USART
     # - component: AlifSemiconductor::Device:SOC Peripherals:UTIMER
     # - component: AlifSemiconductor::Device:SOC Peripherals:WDT
 
     # - component: AlifSemiconductor::Device:OSPI XIP:core
-    # - component: AlifSemiconductor::Device:OSPI XIP:utility
-    # - component: AlifSemiconductor::Device:SE Services:MHU Driver
-    # - component: AlifSemiconductor::Device:SE Services:SE RunTime services&Lib
-    # - component: AlifSemiconductor::Device:SE Services:SE RunTime services&Source
+    # - component: AlifSemiconductor::Device:OSPI XIP:utility    
+
+    - component: AlifSemiconductor::Device:SOC Peripherals:MHU
+    - component: AlifSemiconductor::Device:SE runtime Services:core&Source
+    - component: AlifSemiconductor::Device:SE runtime Services:Initialization Helper&Source
 
     # - component: AlifSemiconductor::BSP:External peripherals:CAMERA Sensor MT9M114
     # - component: AlifSemiconductor::BSP:External peripherals:CAMERA Sensor ARX3A0
@@ -62,3 +111,9 @@ project:
     # - component: AlifSemiconductor::BSP:External peripherals:GT911 Touch Controller
     # - component: AlifSemiconductor::BSP:External peripherals:ILI9806E LCD panel
     # - component: AlifSemiconductor::BSP:External peripherals:OSPI Flash ISSI
+
+  output:
+    base-name: $Project$
+    type:
+      - elf
+      - bin

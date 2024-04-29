@@ -3,6 +3,7 @@ RTE/
 tmp/
 *.yml
 *.cprj
+.clangd
 
 dependencies/alif_ml-embedded-evaluation-kit/automation
 dependencies/alif_ml-embedded-evaluation-kit/model_conditioning_examples
@@ -17,6 +18,7 @@ dependencies/alif_ml-embedded-evaluation-kit/dependencies/cmsis
 dependencies/alif_ml-embedded-evaluation-kit/dependencies/cmsis-dsp
 dependencies/alif_ml-embedded-evaluation-kit/dependencies/cmsis-nn
 dependencies/alif_ml-embedded-evaluation-kit/dependencies/cmsis-ensemble
+dependencies/alif_ml-embedded-evaluation-kit/dependencies/cmsis-ensemble-a
 dependencies/alif_ml-embedded-evaluation-kit/dependencies/core-platform/applications
 dependencies/alif_ml-embedded-evaluation-kit/dependencies/lvgl
 
