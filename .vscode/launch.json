@@ -4,7 +4,7 @@
         {
             "name": "Alif Ensemble Debug",
             "cwd": "${workspaceFolder}",
-            "executable": "./out/${input:device}/${input:core}/${input:device}.elf",
+            "executable": "./out/firmware-alif/${command:cpptools.activeConfigName}/debug/firmware-alif-${command:cpptools.activeConfigName}.elf",
             "request": "launch",
             "type": "cortex-debug",
             "runToEntryPoint": "main",
@@ -15,8 +15,8 @@
             "preLaunchCommands": [
                 "monitor speed 15000"
             ],
-            "jlinkscript": ".alif/m55-${input:core}_setup.jlinkscript"
-        }
+            "jlinkscript": ".alif/m55-${command:cpptools.activeConfigName}_setup.jlinkscript"
+        }    
     ],
     "inputs": [
         {

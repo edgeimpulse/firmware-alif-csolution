@@ -12,7 +12,15 @@
             "target": "HE",
             "config": {
                 "debug": "Alif Ensemble Debug"
-            }
+            },
+            "projects": [
+                {
+                    "path": "firmware-alif.cproject.yaml",
+                    "config": {
+                        "debug": "Alif Ensemble Debug"
+                    }
+                }
+            ]
         }
     ],
 }

@@ -4,7 +4,7 @@
         {
             "label": "Generate and Build with csolution + cbuild",
             "type": "shell",
-            "command": "cbuild ${command:cpptools.activeConfigName}.cprj",
+            "command": "cbuild cproject+${command:cpptools.activeConfigName}.cprj",
             "problemMatcher": [
                 "$gcc",
                 "$armcc5",
@@ -19,7 +19,7 @@
         {
             "label": "Build Project with cbuild",
             "type": "shell",
-            "command": "cbuild ${command:cpptools.activeConfigName}.cprj",
+            "command": "cbuild cproject+${command:cpptools.activeConfigName}.cprj",
             "problemMatcher": [
                 "$gcc",
                 "$armcc5",
@@ -29,7 +29,7 @@
         {
             "label": "Clean Project with cbuild",
             "type": "shell",
-            "command": "cbuild ${command:cpptools.activeConfigName}.cprj -c",
+            "command": "cbuild cproject+${command:cpptools.activeConfigName}.cprj -c",
             "problemMatcher": []
         },
         {
@@ -37,7 +37,7 @@
             "type": "shell",
             "windows": {
                 "command": [
-                "cbuild ${command:cpptools.activeConfigName}.cprj -c;",
+                "cbuild cproject+${command:cpptools.activeConfigName}.cprj -c;",
                 "rm -Recurse -Force ./out;",
                 "rm -Recurse -Force ./RTE;",
                 "rm -Recurse -Force ./tmp;",
@@ -47,7 +47,17 @@
             },
             "linux": {
                 "command": [
-                "cbuild ${command:cpptools.activeConfigName}.cprj -c;",
+                "cbuild cproject+${command:cpptools.activeConfigName}.cprj -c;",
+                "rm -rf ./out;",
+                "rm -rf ./RTE;",
+                "rm -rf ./tmp;",
+                "rm -rf *.yml;",
+                "rm -rf *.cprj;",         
+                ],
+            },
+            "osx": {
+                "command": [
+                "cbuild cproject+${command:cpptools.activeConfigName}.cprj -c;",
                 "rm -rf ./out;",
                 "rm -rf ./RTE;",
                 "rm -rf ./tmp;",
@@ -60,7 +70,7 @@
         {
             "label": "Generate Project Content with csolution",
             "type": "shell",
-            "command": "csolution convert -s csolution.yaml -c ${command:cpptools.activeConfigName}",
+            "command": "csolution convert -s csolution.yaml -c cproject+${command:cpptools.activeConfigName}",
             "problemMatcher": []
         },
         {
@@ -80,20 +90,32 @@
             "type": "shell",
             "windows": {
                 "command": [
-                    "cp ./out/${input:device}/${input:core}/${input:device}.bin $env:SETOOLS_ROOT/build/images/alif-img.bin;",
-                    "cp ./.alif/m55-${input:core}_cfg.json $env:SETOOLS_ROOT/alif-img.json;",
+                    "cp ./out/cproject/${command:cpptools.activeConfigName}/cproject.bin $env:SETOOLS_ROOT/build/images/alif-img.bin;",
+                    "cp ./.alif/m55-${command:cpptools.activeConfigName}_cfg.json $env:SETOOLS_ROOT/alif-img.json;",
                     "pushd $env:SETOOLS_ROOT;",
-                    "./app-gen-toc -f alif-img.json;",
+                    "./app-gen-toc -f ./build/imagesalif-img.json;",
+                    "./app-write-mram -p;",
+                    "rm ./build/images/alif-img.bin;",
+                    "rm ./build/images/alif-img.json;",
+                    "popd"
+                ]
+            },
+            "linux": {
+                "command": [
+                    "cp ./out/cproject/${command:cpptools.activeConfigName}/cproject.bin $SETOOLS_ROOT/build/images/alif-img.bin;",
+                    "cp ./.alif/m55-${command:cpptools.activeConfigName}_cfg.json $SETOOLS_ROOT/build/config/alif-img.json;",
+                    "pushd $SETOOLS_ROOT;",
+                    "./app-gen-toc -f ./build/images/alif-img.json;",
                     "./app-write-mram -p;",
                     "rm ./build/images/alif-img.bin;",
                     "rm ./alif-img.json;",
                     "popd"
                 ]
             },
-            "linux": {
+            "osx": {
                 "command": [
-                    "cp ./out/${input:device}/${input:core}/${input:device}.bin $SETOOLS_ROOT/build/images/alif-img.bin;",
-                    "cp ./.alif/m55-${input:core}_cfg.json $SETOOLS_ROOT/alif-img.json;",
+                    "cp ./out/firmware-alif/${command:cpptools.activeConfigName}/debug/firmware-alif-${command:cpptools.activeConfigName}.bin $SETOOLS_ROOT/build/images/alif-img.bin;",
+                    "cp ./.alif/m55-${command:cpptools.activeConfigName}_cfg.json $SETOOLS_ROOT/alif-img.json;",
                     "pushd $SETOOLS_ROOT;",
                     "./app-gen-toc -f alif-img.json;",
                     "./app-write-mram -p;",
@@ -109,8 +131,8 @@
             "type": "shell",
             "windows": {
                 "command": [
-                    "cp ./out/${input:device}/${input:core}/${input:device}.bin $env:SETOOLS_ROOT/build/images/alif-img.bin;",
-                    "cp ./.alif/m55-${input:core}_cfg.json $env:SETOOLS_ROOT/alif-img.json;",
+                    "cp ./out/cproject/${command:cpptools.activeConfigName}/cproject.bin $env:SETOOLS_ROOT/build/images/alif-img.bin;",
+                    "cp ./.alif/m55-${command:cpptools.activeConfigName}_cfg.json $env:SETOOLS_ROOT/alif-img.json;",
                     "pushd $env:SETOOLS_ROOT;",
                     "./app-gen-toc -f alif-img.json;",
                     "./app-write-mram -p -d;",
@@ -121,8 +143,20 @@
             },
             "linux": {
                 "command": [
-                    "cp ./out/${input:device}/${input:core}/${input:device}.bin $SETOOLS_ROOT/build/images/alif-img.bin;",
-                    "cp ./.alif/m55-${input:core}_cfg.json $SETOOLS_ROOT/alif-img.json;",
+                    "cp ./out/cproject/${command:cpptools.activeConfigName}/cproject.bin $SETOOLS_ROOT/build/images/alif-img.bin;",
+                    "cp ./.alif/m55-${command:cpptools.activeConfigName}_cfg.json $SETOOLS_ROOT/alif-img.json;",
+                    "pushd $SETOOLS_ROOT;",
+                    "./app-gen-toc -f alif-img.json;",
+                    "./app-write-mram -p -d;",
+                    "rm ./build/images/alif-img.bin;",
+                    "rm ./alif-img.json;",
+                    "popd"
+                ]
+            },
+            "osx": {
+                "command": [
+                    "cp ./out/cproject/${command:cpptools.activeConfigName}/cproject.bin $SETOOLS_ROOT/build/images/alif-img.bin;",
+                    "cp ./.alif/m55-${command:cpptools.activeConfigName}_cfg.json $SETOOLS_ROOT/alif-img.json;",
                     "pushd $SETOOLS_ROOT;",
                     "./app-gen-toc -f alif-img.json;",
                     "./app-write-mram -p -d;",
@@ -138,8 +172,8 @@
             "type": "shell",
             "windows": {
                 "command": [
-                    "cp ./out/${input:device}/${input:core}/${input:device}.bin $env:SETOOLS_ROOT/build/images/alif-img.bin;",
-                    "cp ./.alif/m55-${input:core}_cfg.json $env:SETOOLS_ROOT/alif-img.json;",
+                    "cp ./out/cproject/${command:cpptools.activeConfigName}/cproject.bin $env:SETOOLS_ROOT/build/images/alif-img.bin;",
+                    "cp ./.alif/m55-${command:cpptools.activeConfigName}_cfg.json $env:SETOOLS_ROOT/alif-img.json;",
                     "pushd $env:SETOOLS_ROOT;",
                     "./app-gen-toc -f alif-img.json;",
                     "./app-write-mram -S;",
@@ -150,9 +184,21 @@
             },
             "linux": {
                 "command": [
-                    "cp ./out/${input:device}/${input:core}/${input:device}.bin $SETOOLS_ROOT/build/images/alif-img.bin;",
-                    "cp ./.alif/m55-${input:core}_cfg.json $SETOOLS_ROOT/alif-img.json;",
-                    "pushd $SETOOLS_ROOT;",
+                    "cp ./out/cproject/${command:cpptools.activeConfigName}/cproject.bin $env:SETOOLS_ROOT/build/images/alif-img.bin;",
+                    "cp ./.alif/m55-${command:cpptools.activeConfigName}_cfg.json $env:SETOOLS_ROOT/alif-img.json;",
+                    "pushd $env:SETOOLS_ROOT;",
+                    "./app-gen-toc -f alif-img.json;",
+                    "./app-write-mram -S;",
+                    "rm ./build/images/alif-img.bin;",
+                    "rm ./alif-img.json;",
+                    "popd"
+                ]
+            },
+            "osx": {
+                "command": [
+                    "cp ./out/cproject/${command:cpptools.activeConfigName}/cproject.bin $env:SETOOLS_ROOT/build/images/alif-img.bin;",
+                    "cp ./.alif/m55-${command:cpptools.activeConfigName}_cfg.json $env:SETOOLS_ROOT/alif-img.json;",
+                    "pushd $env:SETOOLS_ROOT;",
                     "./app-gen-toc -f alif-img.json;",
                     "./app-write-mram -S;",
                     "rm ./build/images/alif-img.bin;",
@@ -174,6 +220,14 @@
                 ]
             },
             "linux": {
+                "command": [
+                    "pushd $SETOOLS_ROOT;",
+                    "./app-gen-toc -f ./build/config/app-cpu-stubs.json;",
+                    "./app-write-mram;",
+                    "popd"                    
+                ]
+            },
+            "osx": {
                 "command": [
                     "pushd $SETOOLS_ROOT;",
                     "./app-gen-toc -f ./build/config/app-cpu-stubs.json;",
@@ -202,21 +256,15 @@
                     "popd"
                 ]
             },
+            "osx": {
+                "command": [
+                    "pushd $SETOOLS_ROOT;",
+                    "./app-gen-toc -f ./build/config/app-cpu-stubs.json;",
+                    "./app-write-mram -d;",
+                    "popd"
+                ]
+            },
             "problemMatcher": []
         }
     ],
-    "inputs": [
-        {
-            "id": "core",
-            "type": "command",
-            "command": "cpptools.activeConfigCustomVariable",
-            "args": "core"
-        },
-        {
-            "id": "device",
-            "type": "command",
-            "command": "cpptools.activeConfigCustomVariable",
-            "args": "device"
-        }
-    ]
 }
