@@ -26,7 +26,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-
+#include <string.h>
+#include "peripheral/ei_uart.h"
 
 #ifndef EI_CORE_CLOCK_HZ
 #ifdef EI_CONFIG_ETHOS_U55_256
@@ -69,16 +70,64 @@ uint64_t ei_read_timer_ms()
 
 void ei_printf(const char *format, ...)
 {
+    char buffer[256] = {0};
+    int length;
+
     va_list myargs;
     va_start(myargs, format);
-    vprintf(format, myargs);
+    length = vsnprintf(buffer, sizeof(buffer), format, myargs);
     va_end(myargs);
-    fflush(stdout);
+    
+    if (length > 0) {
+        uart_send(buffer, length);
+    }
+    
 }
 
 void ei_printf_float(float f)
 {
-    ei_printf("%f", f);
+    float n = f;
+
+    static double PRECISION = 0.00001;
+    static int MAX_NUMBER_STRING_SIZE = 32;
+
+    char s[MAX_NUMBER_STRING_SIZE];
+
+    if (n == 0.0) {
+        strcpy(s, "0");
+    }
+    else {
+        int digit, m;
+        char *c = s;
+        int neg = (n < 0);
+        if (neg) {
+            n = -n;
+        }
+        // calculate magnitude
+        m = log10(n);
+        if (neg) {
+            *(c++) = '-';
+        }
+        if (m < 1.0) {
+            m = 0;
+        }
+        // convert the number
+        while (n > PRECISION || m >= 0) {
+            double weight = pow(10.0, m);
+            if (weight > 0 && !isinf(weight)) {
+                digit = floor(n / weight);
+                n -= (digit * weight);
+                *(c++) = '0' + digit;
+            }
+            if (m == 0 && n > 0) {
+                *(c++) = '.';
+            }
+            m--;
+        }
+        *(c) = '\0';
+    }
+
+    ei_printf("%s", s);
 }
 
 void ei_putchar(char c) 

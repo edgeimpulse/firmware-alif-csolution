@@ -18,12 +18,13 @@
 #include "board.h"
 #include "se_services_port.h"
 #include <stdio.h>
-#include "uart_tracelib.h"
+//#include "uart_tracelib.h"
 #include "camera.h"
 #include "power.h"
+#include "ei_uart.h"
 
-static void clock_init(void);
-static void uart_callback(uint32_t event);
+
+static uint32_t clock_init(void);
 
 extern void clk_init(void); // retarget.c
 
@@ -35,16 +36,26 @@ void peripheral_init(void)
 {
     BOARD_Pinmux_Init();
 
+    BOARD_LED1_Control(BOARD_LED_STATE_LOW);
+    BOARD_LED2_Control(BOARD_LED_STATE_LOW);
+
     /* Initialize the SE services */
-    se_services_port_init();
+    se_services_port_init();    
 
     /* Enable MIPI power. TODO: To be changed to aiPM call */
     enable_mipi_dphy_power();
     disable_mipi_dphy_isolation();
 
-    clock_init();
+    if (clock_init() != 0) {
 
-    tracelib_init(NULL, uart_callback);
+        BOARD_LED1_Control(BOARD_LED_STATE_HIGH);
+        BOARD_LED2_Control(BOARD_LED_STATE_HIGH);
+
+        while(1);
+    }
+
+    uart_init();
+    //tracelib_init(NULL, uart_callback);
 
     clk_init(); // for time.h clock()
 
@@ -55,24 +66,23 @@ void peripheral_init(void)
  * @brief 
  * 
  */
-static void clock_init(void)
+static uint32_t clock_init(void)
 {
     uint32_t service_error_code = 0;
+
     /* Enable Clocks */
     uint32_t error_code = SERVICES_clocks_enable_clock(se_services_s_handle, CLKEN_CLK_100M, true, &service_error_code);
-    if(error_code || service_error_code){
+    if (error_code || service_error_code){
         //printf("SE: 100MHz clock enable error_code=%u se_error_code=%u\n", error_code, service_error_code);
-        return;
+        return error_code;
     }
 
+#if (RTE_UART2_CLK_SOURCE == 0) /* CLK_38.4MHz */
     error_code = SERVICES_clocks_enable_clock(se_services_s_handle, CLKEN_HFOSC, true, &service_error_code);
-    if(error_code || service_error_code){
+    if (error_code || service_error_code){
         //printf("SE: HFOSC enable error_code=%u se_error_code=%u\n", error_code, service_error_code);
-        return;
+        return error_code;
     }
-}
-
-static void uart_callback(uint32_t event)
-{
-    //
+#endif
+    return error_code;
 }

@@ -13,6 +13,7 @@ project:
         #       for-context: .devkit_gen2
         - file: app/peripheral/peripheral.c
         - file: app/peripheral/camera.c
+        - file: app/peripheral/uart.c
         - file: libs/board/appkit_gen2/board_init.c
           #for-context: .appkit_gen2
         - file: libs/common_app_utils/logging/uart_tracelib.c
