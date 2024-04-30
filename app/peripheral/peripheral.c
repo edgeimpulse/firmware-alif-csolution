@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include "uart_tracelib.h"
 #include "camera.h"
+#include "power.h"
 
 static void clock_init(void);
 static void uart_callback(uint32_t event);
@@ -37,9 +38,15 @@ void peripheral_init(void)
     /* Initialize the SE services */
     se_services_port_init();
 
-    tracelib_init(NULL, uart_callback);
+    /* Enable MIPI power. TODO: To be changed to aiPM call */
+    enable_mipi_dphy_power();
+    disable_mipi_dphy_isolation();
 
     clock_init();
+
+    tracelib_init(NULL, uart_callback);
+
+    clk_init(); // for time.h clock()
 
     camera_init();
 }
