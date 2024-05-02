@@ -28,14 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "peripheral/ei_uart.h"
-
-#ifndef EI_CORE_CLOCK_HZ
-#ifdef EI_CONFIG_ETHOS_U55_256
-#define EI_CORE_CLOCK_HZ 400000000 //default to M55_0 core
-#else
-#define EI_CORE_CLOCK_HZ 160000000
-#endif
-#endif
+#include "peripheral/timer.h"
 
 /* Extern function prototypes ---------------------------------------------- */
 
@@ -49,18 +42,21 @@ EI_IMPULSE_ERROR ei_run_impulse_check_canceled()
  */
 EI_IMPULSE_ERROR ei_sleep(int32_t time_ms)
 {
-    if(time_ms<0) { return EI_IMPULSE_OK; }
+    if (time_ms < 0) { 
+        return EI_IMPULSE_OK; 
+    }
 
-    uint64_t time = ei_read_timer_ms();
+    uint64_t start_time = ei_read_timer_ms();
     // cast so that we get correct wrap around behavior
-    while( ei_read_timer_ms() - time < (uint64_t) time_ms )
+    while ((ei_read_timer_ms() - start_time) < (uint64_t) time_ms)
         ;
     return EI_IMPULSE_OK;
 }
 
 uint64_t ei_read_timer_us()
 {
-    return 100 / ( EI_CORE_CLOCK_HZ / 1000000 );
+    //return Get_SysTick_Cycle_Count() / ( EI_CORE_CLOCK_HZ / 1000000 );
+    return timer_get_us();
 }
 
 uint64_t ei_read_timer_ms()

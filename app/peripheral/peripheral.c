@@ -21,6 +21,7 @@
 #include "camera.h"
 #include "power.h"
 #include "ei_uart.h"
+#include "timer.h"
 
 static void my_uart_callback(uint32_t event);
 static uint32_t clock_init(void);
@@ -55,8 +56,9 @@ void peripheral_init(void)
 
     ei_uart_init();    
 
-    clk_init(); // for time.h clock()
+    //clk_init(); // for time.h clock()
 
+    timer_us_init();
     camera_init();
 }
 

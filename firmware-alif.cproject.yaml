@@ -14,6 +14,7 @@ project:
         - file: app/peripheral/peripheral.c
         - file: app/peripheral/camera.c
         - file: app/peripheral/uart.c
+        - file: app/peripheral/timer.c
         - file: libs/board/appkit_gen2/board_init.c
           #for-context: .appkit_gen2
         - file: libs/common_app_utils/logging/uart_tracelib.c
@@ -75,7 +76,7 @@ project:
     # - component: AlifSemiconductor::Device:SOC Peripherals:SDMMC
     # - component: AlifSemiconductor::Device:SOC Peripherals:SPI
     - component: AlifSemiconductor::Device:SOC Peripherals:USART
-    # - component: AlifSemiconductor::Device:SOC Peripherals:UTIMER
+    - component: AlifSemiconductor::Device:SOC Peripherals:UTIMER
     # - component: AlifSemiconductor::Device:SOC Peripherals:WDT
 
     # - component: AlifSemiconductor::Device:OSPI XIP:core

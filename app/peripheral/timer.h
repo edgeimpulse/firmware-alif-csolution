@@ -14,24 +14,20 @@
  *
  */
 
-#include "ei_main.h"
-#include "edge-impulse-sdk/porting/ei_classifier_porting.h"
+#ifndef _TIMER_H_
+#define _TIMER_H_
 
-#include "board.h"
+#include <stdint.h>
 
-/**
- * @brief 
- * 
- */
-void ei_main(void)
-{
-    ei_printf("Type AT+HELP to see a list of commands.\r\n");
-    ei_printf("Starting main loop\r\n");
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
-    while(1) {
-        ei_sleep(500);
-        
-        BOARD_LED1_Control(BOARD_LED_STATE_TOGGLE);
-        BOARD_LED2_Control(BOARD_LED_STATE_TOGGLE);
-    }
+extern int timer_us_init(void);
+extern uint32_t timer_get_us(void);
+
+#if defined(__cplusplus)
 }
+#endif
+
+#endif
