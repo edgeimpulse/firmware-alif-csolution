@@ -79,7 +79,7 @@ void ei_printf(const char *format, ...)
     va_end(myargs);
     
     if (length > 0) {
-        uart_send(buffer, length);
+        ei_uart_send(buffer, length);        
     }
     
 }

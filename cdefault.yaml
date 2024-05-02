@@ -5,9 +5,11 @@ default:
     - for-compiler: GCC
       C:
         - -std=c99
+        - -Og
         - -fdata-sections
         - -funsigned-char
         - -flax-vector-conversions
+        - -mfloat-abi=hard
     - CPP:
         - -std=c++11
         - -Og

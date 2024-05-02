@@ -12,35 +12,33 @@
 
 
 #if UART_NUM == 2
+extern ARM_DRIVER_USART ARM_Driver_USART_(BOARD_UART1_INSTANCE);
+/* UART Driver instance */
+static ARM_DRIVER_USART *USARTdrv = &ARM_Driver_USART_(BOARD_UART1_INSTANCE);
+#elif UART_NUM == 4
 extern ARM_DRIVER_USART ARM_Driver_USART_(BOARD_UART2_INSTANCE);
 /* UART Driver instance */
 static ARM_DRIVER_USART *USARTdrv = &ARM_Driver_USART_(BOARD_UART2_INSTANCE);
-#elif UART_NUM == 4
-extern ARM_DRIVER_USART ARM_Driver_USART_(BOARD_UART4_INSTANCE);
-/* UART Driver instance */
-static ARM_DRIVER_USART *USARTdrv = &ARM_Driver_USART_(BOARD_UART4_INSTANCE);
 #endif
-
 
 #define UART_CB_TX_EVENT          1U << 0
 #define UART_CB_RX_EVENT          1U << 1
 #define UART_CB_RX_TIMEOUT        1U << 2
-volatile uint32_t event_flags_uart;
+static volatile uint32_t event_flags_uart;
 
-static void uart_callback(uint32_t event);
-static void uart_hw_init(void);
+static void ei_uart_callback(uint32_t event);
 
 static bool initialized;
 
-int uart_init(void)
+int ei_uart_init(void)
 {    
     int32_t ret    = ARM_DRIVER_OK;
 
     /* pin init */
-    uart_hw_init();
+    //uart_hw_init();
 
     /* Initialize UART driver */
-    ret = USARTdrv->Initialize(uart_callback);
+    ret = USARTdrv->Initialize(ei_uart_callback);
     if(ret != ARM_DRIVER_OK)
     {
         return ret;
@@ -89,7 +87,7 @@ int uart_init(void)
  * @param buf 
  * @param len 
  */
-void uart_send(char* buf, unsigned int len)
+void ei_uart_send(char* buf, unsigned int len)
 {
     int ret = 0;
     if (initialized)
@@ -107,7 +105,7 @@ void uart_send(char* buf, unsigned int len)
     }
 }
 
-static void uart_callback(uint32_t event)
+static void ei_uart_callback(uint32_t event)
 {    
     if (event & ARM_USART_EVENT_SEND_COMPLETE) {
         /* Send Success */
@@ -133,7 +131,7 @@ static void uart_hw_init(void)
 
     /* UART2_TX_A */
     pinconf_set( PORT_1, PIN_1, PINMUX_ALTERNATE_FUNCTION_1, 0);
-#elif UART_NUM == 2
+#elif UART_NUM == 4
     /* UART4_RX_B */
     pinconf_set( PORT_12, PIN_1, PINMUX_ALTERNATE_FUNCTION_2, PADCTRL_READ_ENABLE);
 

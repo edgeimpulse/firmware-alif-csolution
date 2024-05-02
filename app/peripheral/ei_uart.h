@@ -21,8 +21,8 @@
 extern "C" {
 #endif
 
-extern int uart_init(void);
-extern void uart_send(char* bug, unsigned int len);
+extern int ei_uart_init(void);
+extern void ei_uart_send(char* bug, unsigned int len);
 
 #if defined(__cplusplus)
 }

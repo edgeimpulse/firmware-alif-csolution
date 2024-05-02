@@ -18,12 +18,11 @@
 #include "board.h"
 #include "se_services_port.h"
 #include <stdio.h>
-//#include "uart_tracelib.h"
 #include "camera.h"
 #include "power.h"
 #include "ei_uart.h"
 
-
+static void my_uart_callback(uint32_t event);
 static uint32_t clock_init(void);
 
 extern void clk_init(void); // retarget.c
@@ -40,12 +39,12 @@ void peripheral_init(void)
     BOARD_LED2_Control(BOARD_LED_STATE_LOW);
 
     /* Initialize the SE services */
-    se_services_port_init();    
+    se_services_port_init();
 
     /* Enable MIPI power. TODO: To be changed to aiPM call */
     enable_mipi_dphy_power();
     disable_mipi_dphy_isolation();
-
+    
     if (clock_init() != 0) {
 
         BOARD_LED1_Control(BOARD_LED_STATE_HIGH);
@@ -54,8 +53,7 @@ void peripheral_init(void)
         while(1);
     }
 
-    uart_init();
-    //tracelib_init(NULL, uart_callback);
+    ei_uart_init();    
 
     clk_init(); // for time.h clock()
 
@@ -77,12 +75,13 @@ static uint32_t clock_init(void)
         return error_code;
     }
 
-#if (RTE_UART2_CLK_SOURCE == 0) /* CLK_38.4MHz */
+//#if (RTE_UART2_CLK_SOURCE == 0) /* CLK_38.4MHz */
     error_code = SERVICES_clocks_enable_clock(se_services_s_handle, CLKEN_HFOSC, true, &service_error_code);
     if (error_code || service_error_code){
         //printf("SE: HFOSC enable error_code=%u se_error_code=%u\n", error_code, service_error_code);
         return error_code;
     }
-#endif
+//#endif
+
     return error_code;
 }

@@ -57,7 +57,7 @@ project:
     # - component: AlifSemiconductor::Device:SOC Peripherals:Ethernet MAC
     - component: AlifSemiconductor::Device:SOC Peripherals:GPIO
     # - component: AlifSemiconductor::Device:SOC Peripherals:HSCMP
-    - component: AlifSemiconductor::Device:SOC Peripherals:HWSEM
+    # - component: AlifSemiconductor::Device:SOC Peripherals:HWSEM
     - component: AlifSemiconductor::Device:SOC Peripherals:I2C
     # - component: AlifSemiconductor::Device:SOC Peripherals:I2C_I3C
     # - component: AlifSemiconductor::Device:SOC Peripherals:I2S

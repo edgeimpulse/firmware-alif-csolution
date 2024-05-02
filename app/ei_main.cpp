@@ -17,6 +17,8 @@
 #include "ei_main.h"
 #include "edge-impulse-sdk/porting/ei_classifier_porting.h"
 
+#include "board.h"
+
 /**
  * @brief 
  * 
@@ -27,6 +29,9 @@ void ei_main(void)
     ei_printf("Starting main loop\r\n");
 
     while(1) {
+        ei_sleep(500);
 
+        BOARD_LED1_Control(BOARD_LED_STATE_TOGGLE);
+        BOARD_LED2_Control(BOARD_LED_STATE_TOGGLE);
     }
 }
