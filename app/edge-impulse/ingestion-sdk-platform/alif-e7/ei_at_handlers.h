@@ -14,20 +14,12 @@
  *
  */
 
-#ifndef _EI_UART_H_
-#define _EI_UART_H_
+#ifndef EI_AT_HANDLERS_H
+#define EI_AT_HANDLERS_H
 
-#include <stdint.h>
+#include "firmware-sdk/at-server/ei_at_server.h"
+#include "ingestion-sdk-platform/alif-e7/ei_device_alif_e7.h"
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
+ATServer *ei_at_init(EiDeviceAlif *device);
 
-extern int ei_uart_init(uint32_t baudrate);
-extern void ei_uart_send(char* bug, unsigned int len);
-
-#if defined(__cplusplus)
-}
-#endif
-
-#endif
+#endif /* AT_HANDLERS_H_ */

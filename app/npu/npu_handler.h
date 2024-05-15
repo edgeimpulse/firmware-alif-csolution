@@ -14,20 +14,11 @@
  *
  */
 
-#ifndef _EI_UART_H_
-#define _EI_UART_H_
+#ifndef _NPU_HANDLER_H_
+#define _NPU_HANDLER_H_
 
-#include <stdint.h>
-
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
-extern int ei_uart_init(uint32_t baudrate);
-extern void ei_uart_send(char* bug, unsigned int len);
-
-#if defined(__cplusplus)
-}
-#endif
+extern int npu_init(void);
+extern void cpu_cache_enable(void);
+extern void cpu_cache_disable(void);
 
 #endif

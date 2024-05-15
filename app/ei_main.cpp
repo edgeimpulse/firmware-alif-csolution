@@ -16,7 +16,7 @@
 
 #include "ei_main.h"
 #include "edge-impulse-sdk/porting/ei_classifier_porting.h"
-
+#include "npu/npu_handler.h"
 #include "board.h"
 
 /**
@@ -25,6 +25,14 @@
  */
 void ei_main(void)
 {
+    if (npu_init()) {
+        BOARD_LED1_Control(BOARD_LED_STATE_TOGGLE);
+        BOARD_LED2_Control(BOARD_LED_STATE_TOGGLE);
+        ei_sleep(1000);
+    }
+
+    cpu_cache_enable();
+
     ei_printf("Type AT+HELP to see a list of commands.\r\n");
     ei_printf("Starting main loop\r\n");
 

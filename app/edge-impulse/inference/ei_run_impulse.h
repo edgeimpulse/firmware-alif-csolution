@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 EdgeImpulse Inc.
+ * Copyright (c) 2022 EdgeImpulse Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,16 @@
  *
  */
 
-#ifndef _EI_UART_H_
-#define _EI_UART_H_
+#ifndef EI_RUN_IMPULSE_H
+#define EI_RUN_IMPULSE_H
 
-#include <stdint.h>
+#include <cstdint>
+#include "edge-impulse-sdk/classifier/ei_classifier_types.h"
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
+extern void ei_start_impulse(bool continuous, bool debug, bool use_max_uart_speed = false);
+extern void ei_run_impulse(void);
+extern void ei_stop_impulse(void);
+extern bool is_inference_running(void);
+extern void ei_run_stream_impulse(uint8_t* pbuffer, uint16_t width, uint16_t height, ei_impulse_result_t* presult);
 
-extern int ei_uart_init(uint32_t baudrate);
-extern void ei_uart_send(char* bug, unsigned int len);
-
-#if defined(__cplusplus)
-}
-#endif
-
-#endif
+#endif /* EI_RUN_IMPULSE_H */

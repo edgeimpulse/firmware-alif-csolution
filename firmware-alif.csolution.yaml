@@ -10,12 +10,14 @@ solution:
       #debug: "on"
       define:
         - "CORE_M55_HE"
+        - "EI_CONFIG_ETHOS_U55_128"
     - device: Alif Semiconductor::AE722F80F55D5LS:M55_HP
       type: HP
       compiler: GCC
       #debug: "on"
       define:
         - "CORE_M55_HP"
+        - "EI_CONFIG_ETHOS_U55_256"
 
   define:
     - UNICODE
@@ -37,7 +39,7 @@ solution:
     - pack: ARM::CMSIS@5.9.0
     - pack: ARM::CMSIS-DSP@1.11.0
     - pack: ARM::CMSIS-NN@4.0.0
-    - pack: EdgeImpulse::EI-SDK@1.49.9
+    - pack: EdgeImpulse
   projects:
     #- project: gen2_devkit.cproject.yaml
     #- project: gen2_appkit.cproject.yaml

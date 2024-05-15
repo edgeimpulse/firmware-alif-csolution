@@ -14,6 +14,9 @@
  *
  */
 
+#include "RTE_Components.h"
+#include "RTE_Device.h"
+#include CMSIS_device_header
 #include "peripheral.h"
 #include "board.h"
 #include "se_services_port.h"
@@ -27,6 +30,7 @@ static void my_uart_callback(uint32_t event);
 static uint32_t clock_init(void);
 
 extern void clk_init(void); // retarget.c
+static void copy_vtor_table_to_ram();
 
 /**
  * @brief 
@@ -34,6 +38,8 @@ extern void clk_init(void); // retarget.c
  */
 void peripheral_init(void)
 {
+    copy_vtor_table_to_ram();
+    
     BOARD_Pinmux_Init();
 
     BOARD_LED1_Control(BOARD_LED_STATE_LOW);
@@ -54,7 +60,7 @@ void peripheral_init(void)
         while(1);
     }
 
-    ei_uart_init();    
+    ei_uart_init(115200);    
 
     //clk_init(); // for time.h clock()
 
@@ -86,4 +92,17 @@ static uint32_t clock_init(void)
 //#endif
 
     return error_code;
+}
+
+static VECTOR_TABLE_Type MyVectorTable[496] __attribute__((aligned (2048))) __attribute__((section (".bss.noinit.ram_vectors")));
+static void copy_vtor_table_to_ram()
+{
+    if (SCB->VTOR == (uint32_t) MyVectorTable) {
+        return;
+    }
+    memcpy(MyVectorTable, (const void *) SCB->VTOR, sizeof MyVectorTable);
+    __DMB();
+    // Set the new vector table into use.
+    SCB->VTOR = (uint32_t) MyVectorTable;
+    __DSB();
 }

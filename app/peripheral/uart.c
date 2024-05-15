@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2024 EdgeImpulse Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
 
 #include "ei_uart.h"
 #include "pinconf.h"
@@ -28,14 +43,20 @@ static volatile uint32_t event_flags_uart;
 
 static void ei_uart_callback(uint32_t event);
 
-static bool initialized;
+static bool initialized = false;
 
-int ei_uart_init(void)
+/**
+ * @brief 
+ * 
+ * @return int 
+ */
+int ei_uart_init(uint32_t baudrate)
 {    
     int32_t ret    = ARM_DRIVER_OK;
 
-    /* pin init */
-    //uart_hw_init();
+    if (initialized == true) {
+        USARTdrv->Uninitialize();
+    }
 
     /* Initialize UART driver */
     ret = USARTdrv->Initialize(ei_uart_callback);
@@ -51,12 +72,12 @@ int ei_uart_init(void)
         return ret;
     }
 
-    /* Configure UART to 115200 Bits/sec */
+    /* Configure UART to baudrate Bits/sec */
     ret =  USARTdrv->Control(ARM_USART_MODE_ASYNCHRONOUS |
                              ARM_USART_DATA_BITS_8       |
                              ARM_USART_PARITY_NONE       |
                              ARM_USART_STOP_BITS_1       |
-                             ARM_USART_FLOW_CONTROL_NONE, 115200);
+                             ARM_USART_FLOW_CONTROL_NONE, baudrate);
     if(ret != ARM_DRIVER_OK)
     {
         return ret;
