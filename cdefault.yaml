@@ -17,6 +17,7 @@ default:
         - -fno-rtti
         - -fno-unwind-tables
         - -flax-vector-conversions
+        - -fno-exceptions
 
       Link:        
         #- --specs=nano.specs
@@ -49,6 +50,12 @@ default:
         - -std=c99
         - -fdata-sections
         - -Wno-license-management
+      CPP:
+        - -std=c++11
+        - -fdata-sections
+        - -fno-rtti
+        - -fno-unwind-tables
+        - -fno-exceptions
       Link:
         - --entry=Reset_Handler
         - --map
