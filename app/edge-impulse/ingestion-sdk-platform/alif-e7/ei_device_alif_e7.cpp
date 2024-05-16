@@ -19,6 +19,7 @@
 #include "edge-impulse-sdk/porting/ei_classifier_porting.h"
 #include "ei_utils.h"
 #include "peripheral/ei_uart.h"
+#include "ingestion-sdk-platform/sensor/ei_microphone.h"
 
 /** Data Output Baudrate */
 const ei_device_data_output_baudrate_t ei_dev_max_data_output_baudrate = {
@@ -31,14 +32,18 @@ const ei_device_data_output_baudrate_t ei_dev_default_data_output_baudrate = {
     DEFAULT_BAUD,
 };
 
-static ei_device_sensor_t sensor_list[] = {
-    { 
-        .name = "Microphone",
-        .frequencies = { 16000.0 },
-        .max_sample_length_s = 2,
-        //.start_sampling_cb = ei_microphone_sample_record
-    }
-};
+EiDeviceAlif::EiDeviceAlif(void)
+{
+    init_device_id();
+    
+    sensors[0].name = "Microphone";
+    sensors[0].frequencies[0] = 16000;
+    sensors[0].max_sample_length_s = 2;
+    sensors[0].start_sampling_cb = ei_microphone_sample_record;
+
+    /* Init camera instance */
+    cam = static_cast<EiAlifCamera*>(EiCamera::get_camera());
+}
 
 /**
  * @brief 
@@ -75,31 +80,51 @@ void EiDeviceAlif::set_default_data_output_baudrate(void)
  *
  * @return     False if all went ok
  */
-bool EiDeviceAlif::get_snapshot_list(const ei_device_snapshot_resolutions_t **snapshot_list, size_t *snapshot_list_size,
-                                         const char **color_depth)
+EiSnapshotProperties EiDeviceAlif::get_snapshot_list(void)
 {
-    snapshot_resolutions[0].width = 64;
-    snapshot_resolutions[0].height = 64;
-    snapshot_resolutions[1].width = 96;
-    snapshot_resolutions[1].height = 96;
-    snapshot_resolutions[2].width = 160;
-    snapshot_resolutions[2].height = 160;
-    snapshot_resolutions[3].width = 320;
-    snapshot_resolutions[3].height = 320;
-    snapshot_resolutions[4].width = 480;
-    snapshot_resolutions[4].height = 480;
+    ei_device_snapshot_resolutions_t res[EI_DEVICE_N_RESOLUTIONS] = 
+    {
+        {
+            .width = 64,
+            .height = 64
+        },
+        {
+            .width = 96,
+            .height = 96
+        },
+        {
+            .width = 160,
+            .height = 160
+        },
+        {
+            .width = 320,
+            .height = 320
+        },
+        {
+            .width = 480,
+            .height = 480
+        }
+    };
+    uint8_t res_num = 0;
 
-    *snapshot_list      = snapshot_resolutions;
-    *snapshot_list_size = EI_DEVICE_N_RESOLUTIONS;
-    *color_depth = "RGB";
+    EiSnapshotProperties props = {
+        .has_snapshot = true,
+        .support_stream = true,
+        .color_depth = "RGB",
+        .resolutions_num = 0,
+        .resolutions = res
+    };
 
-    return false;
+    props.resolutions = res;
+    props.resolutions_num = EI_DEVICE_N_RESOLUTIONS;
+
+    return props;
 }
 
 bool EiDeviceAlif::get_sensor_list(const ei_device_sensor_t **p_sensor_list, size_t *sensor_list_size)
 {
-    *p_sensor_list = sensor_list;
-    *sensor_list_size = ARRAY_LENGTH(sensor_list);
+    *p_sensor_list = sensors;
+    *sensor_list_size = ARRAY_LENGTH(sensors);
     return true;
 }
 

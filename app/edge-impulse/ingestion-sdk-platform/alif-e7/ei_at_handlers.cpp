@@ -62,18 +62,18 @@ ATServer *ei_at_init(EiDeviceAlif *ei_device)
     at = ATServer::get_instance();
     pei_device = ei_device;
 
-    //at->register_command(AT_CONFIG, AT_CONFIG_HELP_TEXT, nullptr, at_list_config, nullptr, nullptr);
-    //at->register_command(AT_CLEARCONFIG, AT_CLEARCONFIG_HELP_TEXT, at_clear_config, nullptr, nullptr, nullptr);
-    //at->register_command(AT_SAMPLESETTINGS, AT_SAMPLESETTINGS_HELP_TEXT, nullptr, at_get_sample_settings, at_set_sample_settings, AT_SAMPLESETTINGS_ARGS);
-    //at->register_command(AT_RUNIMPULSE, AT_RUNIMPULSE_HELP_TEXT, at_run_nn_normal, nullptr, nullptr, nullptr);
-    //at->register_command(AT_RUNIMPULSEDEBUG, AT_RUNIMPULSEDEBUG_HELP_TEXT, nullptr, nullptr, at_run_impulse_debug, AT_RUNIMPULSEDEBUG_ARGS);
-    //at->register_command(AT_RUNIMPULSECONT, AT_RUNIMPULSECONT_HELP_TEXT, at_run_nn_normal_cont, nullptr, nullptr, nullptr);
-    //at->register_command(AT_READBUFFER, AT_READBUFFER_HELP_TEXT, nullptr, nullptr, at_read_buffer, AT_READBUFFER_ARGS);
-    //at->register_command(AT_MGMTSETTINGS, AT_MGMTSETTINGS_HELP_TEXT, nullptr, at_get_mgmt_settings, at_set_mgmt_settings, AT_MGMTSETTINGS_ARGS);
-    //at->register_command(AT_UPLOADSETTINGS, AT_UPLOADSETTINGS_HELP_TEXT, nullptr, at_get_upload_settings, at_set_upload_settings, AT_UPLOADSETTINGS_ARGS);
-    //at->register_command(AT_UPLOADHOST, AT_UPLOADHOST_HELP_TEXT, nullptr, nullptr, at_set_upload_host, AT_UPLOADHOST_ARGS);
-    //at->register_command(AT_SNAPSHOT, AT_SNAPSHOT_HELP_TEXT, nullptr, at_get_snapshot, at_take_snapshot, AT_SNAPSHOT_ARGS);
-    //at->register_command(AT_SNAPSHOTSTREAM, AT_SNAPSHOTSTREAM_HELP_TEXT, nullptr, nullptr, at_snapshot_stream, AT_SNAPSHOTSTREAM_ARGS);
+    at->register_command(AT_CONFIG, AT_CONFIG_HELP_TEXT, nullptr, at_list_config, nullptr, nullptr);
+    at->register_command(AT_CLEARCONFIG, AT_CLEARCONFIG_HELP_TEXT, at_clear_config, nullptr, nullptr, nullptr);
+    at->register_command(AT_SAMPLESETTINGS, AT_SAMPLESETTINGS_HELP_TEXT, nullptr, at_get_sample_settings, at_set_sample_settings, AT_SAMPLESETTINGS_ARGS);
+    at->register_command(AT_RUNIMPULSE, AT_RUNIMPULSE_HELP_TEXT, at_run_nn_normal, nullptr, nullptr, nullptr);
+    at->register_command(AT_RUNIMPULSEDEBUG, AT_RUNIMPULSEDEBUG_HELP_TEXT, nullptr, nullptr, at_run_impulse_debug, AT_RUNIMPULSEDEBUG_ARGS);
+    at->register_command(AT_RUNIMPULSECONT, AT_RUNIMPULSECONT_HELP_TEXT, at_run_nn_normal_cont, nullptr, nullptr, nullptr);
+    at->register_command(AT_READBUFFER, AT_READBUFFER_HELP_TEXT, nullptr, nullptr, at_read_buffer, AT_READBUFFER_ARGS);
+    at->register_command(AT_MGMTSETTINGS, AT_MGMTSETTINGS_HELP_TEXT, nullptr, at_get_mgmt_settings, at_set_mgmt_settings, AT_MGMTSETTINGS_ARGS);
+    at->register_command(AT_UPLOADSETTINGS, AT_UPLOADSETTINGS_HELP_TEXT, nullptr, at_get_upload_settings, at_set_upload_settings, AT_UPLOADSETTINGS_ARGS);
+    at->register_command(AT_UPLOADHOST, AT_UPLOADHOST_HELP_TEXT, nullptr, nullptr, at_set_upload_host, AT_UPLOADHOST_ARGS);
+    at->register_command(AT_SNAPSHOT, AT_SNAPSHOT_HELP_TEXT, nullptr, at_get_snapshot, at_take_snapshot, AT_SNAPSHOT_ARGS);
+    at->register_command(AT_SNAPSHOTSTREAM, AT_SNAPSHOTSTREAM_HELP_TEXT, nullptr, nullptr, at_snapshot_stream, AT_SNAPSHOTSTREAM_ARGS);
 
     return at;
 }
@@ -191,4 +191,408 @@ static bool at_get_sample_settings(void)
     }
 
     return ret_val;
+}
+
+/**
+ * @brief Handler for RUNIMPULE
+ *
+ * @return
+ */
+static bool at_run_nn_normal(void)
+{
+    //ei_start_impulse(false, false, false);
+
+    //return (is_inference_running());
+    return true;
+}
+
+/**
+ * @brief
+ *
+ * @param argv
+ * @param argc
+ * @return true
+ * @return false
+ */
+static bool at_run_impulse_debug(const char **argv, const int argc)
+{
+    bool use_max_uart_speed = false;
+
+    if (argc > 0 && argv[0][0] == 'y') {
+        use_max_uart_speed = true;
+    }
+
+    //ei_start_impulse(false, true, use_max_uart_speed);
+    //return (is_inference_running());
+    return true;
+}
+
+/**
+ * @brief Handler for RUNIMPULSECONT
+ *
+ * @return
+ */
+static bool at_run_nn_normal_cont(void)
+{
+    //ei_start_impulse(true, false, false);
+
+    //return (is_inference_running());
+    return true;
+}
+
+/**
+ *
+ * @param argv
+ * @param argc
+ * @return
+ */
+static bool at_read_buffer(const char **argv, const int argc)
+{
+    bool success = false;
+
+    if(argc < 2) {
+        ei_printf("Missing argument! Required: " AT_READBUFFER_ARGS "\r\n");
+        return true;
+    }
+
+    if (pei_device != nullptr)
+    {
+        size_t start = (size_t)atoi(argv[0]);
+        size_t length = (size_t)atoi(argv[1]);
+
+        bool use_max_baudrate = false;
+        if (argc >= 3 && argv[2][0] == 'y') {
+           use_max_baudrate = true;
+        }
+
+        if (use_max_baudrate) {
+            ei_printf("OK\r\n");
+            pei_device->set_max_data_output_baudrate();
+            ei_sleep(100);
+        }
+
+        //success = read_encode_send_sample_buffer(start, length);
+
+        if (use_max_baudrate) {
+            ei_printf("\r\nOK\r\n");
+            ei_sleep(100);
+            pei_device->set_default_data_output_baudrate();
+            ei_sleep(100);
+        }
+
+        if (!success) {
+            ei_printf("Failed to read from buffer\r\n");
+        }
+        else {
+            ei_printf("\r\n");
+        }
+    }
+
+    return success;
+}
+
+/**
+ *
+ * @return
+ */
+static bool at_get_mgmt_settings(void)
+{
+    ei_printf("URL:        %s\r\n", pei_device->get_management_url().c_str());
+    ei_printf("Connected:  0\r\n");
+    ei_printf("Last error: \r\n");
+
+    return true;
+}
+
+/**
+ *
+ * @param argv
+ * @param argc
+ * @return
+ */
+static bool at_set_mgmt_settings(const char **argv, const int argc)
+{
+    bool ret_val = false;
+
+    if (check_args_num(1, argc) == false) {
+        return true;
+    }
+
+    if (pei_device != nullptr) {
+        pei_device->set_management_url(argv[0]);
+        ei_printf("OK\r\n");
+
+        ret_val = true;
+    }
+
+    return ret_val;
+}
+
+/**
+ *
+ * @return
+ */
+static bool at_get_upload_settings(void)
+{
+    bool ret_val = false;
+
+    if (pei_device != nullptr) {
+        ei_printf("Api Key:   %s\r\n", pei_device->get_upload_api_key().c_str());
+        ei_printf("Host:      %s\r\n", pei_device->get_upload_host().c_str());
+        ei_printf("Path:      %s\r\n", pei_device->get_upload_path().c_str());
+
+        ret_val = true;
+    }
+    else {
+
+    }
+
+    return ret_val;
+}
+
+/**
+ *
+ * @param argv
+ * @param argc
+ * @return
+ */
+static bool at_set_upload_settings(const char **argv, const int argc)
+{
+    bool ret_val = false;
+
+    if (check_args_num(2, argc) == false) {
+        return false;
+    }
+    if (pei_device != nullptr) {
+        pei_device->set_upload_api_key(argv[0]);
+        pei_device->set_upload_host(argv[1]);
+
+        ret_val = true;
+    }
+
+    ei_printf("OK\r\n");
+
+    return ret_val;
+}
+
+/**
+ *
+ * @param argv
+ * @param argc
+ * @return
+ */
+static bool at_set_sample_settings(const char **argv, const int argc)
+{
+    if ((argc < 3) || (pei_device == nullptr)) {
+        ei_printf("Missing argument! Required: " AT_SAMPLESETTINGS_ARGS "\r\n");
+        return false;
+    }
+
+    pei_device->set_sample_label(argv[0]);
+
+    //TODO: sanity check and/or exception handling
+    std::string interval_ms_str(argv[1]);
+    pei_device->set_sample_interval_ms(stof(interval_ms_str));
+
+    //TODO: sanity check and/or exception handling
+    std::string sample_length_str(argv[2]);
+    pei_device->set_sample_length_ms(stoi(sample_length_str));
+
+    if(argc >= 4) {
+        pei_device->set_sample_hmac_key(argv[3]);
+    }
+
+    ei_printf("OK\r\n");
+
+    return true;
+}
+
+/**
+ *
+ * @param argv
+ * @param argc
+ * @return
+ */
+static bool at_set_upload_host(const char **argv, const int argc)
+{
+    bool ret_val = false;
+
+    if (check_args_num(1, argc) == false) {
+        return false;
+    }
+
+    if (pei_device != nullptr)
+    {
+        pei_device->set_upload_host(argv[0]);
+        ret_val = true;
+    }
+
+    ei_printf("OK\r\n");
+
+    return ret_val;
+}
+
+/**
+ *
+ * @param argv
+ * @param argc
+ * @return
+ */
+static bool at_read_raw(const char **argv, const int argc)
+{
+    if(argc < 2) {
+        ei_printf("Missing argument! Required: " AT_READBUFFER_ARGS "\r\n");
+        return true;
+    }
+
+    volatile uint32_t start = (uint32_t)atoi(argv[0]);
+    volatile uint32_t length = (uint32_t)atoi(argv[1]);
+
+    unsigned char buffer[32];
+
+    for(; (start < length); start += 32)
+    {
+        //pei_device->read_raw(buffer, start, 32);
+
+        int n_display_bytes = (length - start) < 32 ? (length - start) : 32;
+        for(int i=0; i<n_display_bytes; i++)
+        {
+            ei_printf("%.2X ", (unsigned char)buffer[i]);
+        }
+        ei_printf("\b\r\n");
+
+        if (start > length)
+            return true;
+    }
+
+    return true;
+}
+
+/**
+ *
+ * @return
+ */
+static bool at_get_snapshot(void)
+{
+    EiSnapshotProperties props;
+
+    props = pei_device->get_snapshot_list();
+
+    ei_printf("Has snapshot:         %d\r\n", props.has_snapshot ? 1 : 0);
+    ei_printf("Supports stream:      %d\r\n", props.support_stream ? 1 : 0);
+
+    if (props.has_snapshot || props.support_stream) {   // only if one of the 2
+        //TODO: what is the correct format?
+        ei_printf("Color depth:          %s\r\n", props.color_depth.c_str());
+        ei_printf("Resolutions:          [ ");
+        for (int i = 0; i < props.resolutions_num; i++) {
+            ei_printf("%ux%u", props.resolutions[i].width, props.resolutions[i].height);
+            if (i != props.resolutions_num - 1) {
+                ei_printf(", ");
+            }
+        }
+        ei_printf(" ]\r\n");
+    }
+
+    return true;
+}
+
+/**
+ *
+ * @param argv
+ * @param argc
+ * @return
+ */
+static bool at_take_snapshot(const char **argv, const int argc)
+{
+    uint16_t width;
+    uint16_t height;
+    bool use_max_baudrate = false;
+
+    if (argc < 2) {
+        ei_printf("Width and height arguments missing!\r\n");
+        return true;
+    }
+    width = atoi(argv[0]);
+    height = atoi(argv[1]);
+
+    if (argc >= 3 && argv[2][0] == 'y') {
+        use_max_baudrate = true;
+    }
+
+    if(use_max_baudrate) {
+        ei_printf("OK\r\n");
+        // make sure to flush data before changing baudrate
+        ei_sleep(100);
+        pei_device->set_max_data_output_baudrate();
+        ei_sleep(100);
+    }
+
+    // take snapshot
+
+    if(use_max_baudrate) {
+        // lower baud rate
+        ei_printf("\r\nOK\r\n");
+        ei_sleep(100);
+        pei_device->set_default_data_output_baudrate();
+        // sleep a little to let the daemon attach on baud rate 115200 again...
+        ei_sleep(100);
+    }
+
+    return true;
+}
+
+/**
+ *
+ * @param argv
+ * @param argc
+ * @return
+ */
+static bool at_snapshot_stream(const char **argv, const int argc)
+{
+    uint32_t width, height;
+    bool use_max_baudrate = false;
+    EiSnapshotProperties props;
+
+    if(argc < 2) {
+        ei_printf("Width and height arguments missing!\r\n");
+        return true;
+    }
+    width = atoi(argv[0]);
+    height = atoi(argv[1]);
+
+    if(argc >=3 && argv[2][0] == 'y') {
+        use_max_baudrate = true;
+    }
+
+    // start stream
+
+    ei_printf("Starting snapshot stream...\r\n");
+
+    if(use_max_baudrate) {
+        ei_printf("OK\r\n");
+        // make sure to flush data before changing baudrate
+        ei_sleep(100);
+        pei_device->set_max_data_output_baudrate();
+        ei_sleep(100);
+    }
+
+    // we do not print a new prompt!
+    return false;
+}
+
+/**
+ *
+ * @param required
+ * @param received
+ * @return
+ */
+static inline bool check_args_num(const int &required, const int &received)
+{
+    if (received < required) {
+        ei_printf("Too few arguments! Required: %d\r\n", required);
+        return false;
+    }
+
+    return true;
 }

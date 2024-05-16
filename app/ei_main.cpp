@@ -18,9 +18,11 @@
 #include "edge-impulse-sdk/porting/ei_classifier_porting.h"
 #include "edge-impulse/ingestion-sdk-platform/alif-e7/ei_at_handlers.h"
 #include "edge-impulse/ingestion-sdk-platform/alif-e7/ei_device_alif_e7.h"
+#include "edge-impulse/ingestion-sdk-platform/sensor/ei_microphone.h"
 #include "npu/npu_handler.h"
 #include "board.h"
 #include "peripheral/ei_uart.h"
+#include "inference/ei_run_impulse.h"
 
 /**
  * @brief 
@@ -44,15 +46,28 @@ void ei_main(void)
 
     at = ei_at_init(dev);
 
+    ei_microphone_init();
+
     while(1) {
+        /* handle command comming from uart */
+
         char data = ei_get_serial_byte();
 
-        do {
+        while ((uint8_t)data != 0xFF) {
             
-            at->handle(data);
+            if(is_inference_running() && data == 'b') {
+                ei_stop_impulse();
+                at->print_prompt();
+                continue;
+            }
 
+            at->handle(data);
             data = ei_get_serial_byte();
-        } while (data != 0xFF);
+        }
+
+        if (is_inference_running() == true) {
+            ei_run_impulse();
+        }
         
     }
 }

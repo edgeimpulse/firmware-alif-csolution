@@ -20,26 +20,32 @@
 /* Include ----------------------------------------------------------------- */
 #include "firmware-sdk/ei_device_info_lib.h"
 #include "firmware-sdk/ei_device_memory.h"
+#include "ingestion-sdk-platform/sensor/ei_camera.h"
 
 /* Const defines ----------------------------------------------------------- */
-#define EI_DEVICE_N_RESOLUTIONS 5
+#define EI_DEVICE_N_RESOLUTIONS     5
+#define EI_STANDALONE_SENSORS_COUNT 1
 
 /* Supported baud rates --------------------------------------------------- */
-#define DEFAULT_BAUD 115200
-#define MAX_BAUD 921600
+#define DEFAULT_BAUD    115200
+#define MAX_BAUD        921600
 
 class EiDeviceAlif : public EiDeviceInfo
 {
 private:
-    ei_device_snapshot_resolutions_t snapshot_resolutions[EI_DEVICE_N_RESOLUTIONS];
-    
+    EiAlifCamera *cam;
+    static const int sensors_count = EI_STANDALONE_SENSORS_COUNT;
+    ei_device_sensor_t sensors[sensors_count];
+    EiState state;
+    EiDeviceMemory *data_flash;
+
 public:
-    void init_device_id(void);
-    void set_default_data_output_baudrate(void);
-    void set_max_data_output_baudrate(void);
-    bool get_snapshot_list(const ei_device_snapshot_resolutions_t **resolution_list, size_t *resolution_list_size,
-                const char **color_depth);
-    bool get_sensor_list(const ei_device_sensor_t **p_sensor_list, size_t *sensor_list_size);
+    EiDeviceAlif(void);
+    void init_device_id(void) override;
+    void set_default_data_output_baudrate(void) override;
+    void set_max_data_output_baudrate(void) override;
+    EiSnapshotProperties get_snapshot_list(void) override;
+    bool get_sensor_list(const ei_device_sensor_t **p_sensor_list, size_t *sensor_list_size) override;
 };
 
 #endif
