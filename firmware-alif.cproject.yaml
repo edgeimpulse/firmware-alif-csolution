@@ -10,6 +10,12 @@ project:
         - file: app/edge-impulse/ingestion-sdk-platform/alif-e7/ei_classifier_porting.cpp
         - file: app/edge-impulse/ingestion-sdk-platform/alif-e7/ei_device_alif_e7.cpp
         - file: app/edge-impulse/ingestion-sdk-platform/alif-e7/ei_at_handlers.cpp
+    - group: FW-SDK
+      files:
+        - file: app/edge-impulse/firmware-sdk/at-server/ei_at_server_singleton.cpp
+        - file: app/edge-impulse/firmware-sdk/at-server/ei_at_server.cpp
+        - file: app/edge-impulse/firmware-sdk/at-server/ei_at_parser.cpp
+        - file: app/edge-impulse/firmware-sdk/at-server/ei_at_command_set.cpp
     - group: Board
       files:
         - file: app/peripheral/peripheral.c
@@ -66,7 +72,7 @@ project:
     - component: ARM::CMSIS:NN Lib@4.0.0
     - component: EdgeImpulse::EdgeImpulse:SDK
     # Add your model here
-    #- component: EdgeImpulse:model:project_name@x.0.0
+    - component: EdgeImpulse:model:ei_francesco-project-1
 
     # peripheral drivers & middleware, uncomment as needed
     # - component: AlifSemiconductor::Device:SOC Peripherals:ADC

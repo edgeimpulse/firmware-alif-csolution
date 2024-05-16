@@ -25,6 +25,8 @@
 
 #define UART_NUM 2
 
+static volatile uint8_t rx_buffer[512];
+static volatile uint16_t rx_index;
 
 #if UART_NUM == 2
 extern ARM_DRIVER_USART ARM_Driver_USART_(BOARD_UART1_INSTANCE);
@@ -36,9 +38,10 @@ extern ARM_DRIVER_USART ARM_Driver_USART_(BOARD_UART2_INSTANCE);
 static ARM_DRIVER_USART *USARTdrv = &ARM_Driver_USART_(BOARD_UART2_INSTANCE);
 #endif
 
-#define UART_CB_TX_EVENT          1U << 0
-#define UART_CB_RX_EVENT          1U << 1
-#define UART_CB_RX_TIMEOUT        1U << 2
+#define UART_CB_TX_EVENT          (1U << 0)
+#define UART_CB_RX_EVENT          (1U << 1)
+#define UART_CB_RX_TIMEOUT        (1U << 2)
+
 static volatile uint32_t event_flags_uart;
 
 static void ei_uart_callback(uint32_t event);
@@ -97,7 +100,15 @@ int ei_uart_init(uint32_t baudrate)
         return ret;
     }
 
+    rx_index = 0;
+    ret =  USARTdrv->Receive((void*)&rx_buffer[0], 1);
+    if(ret != ARM_DRIVER_OK)
+    {
+        return ret;
+    }
+
     initialized = true;
+
     return ret;
 
 }
@@ -126,6 +137,29 @@ void ei_uart_send(char* buf, unsigned int len)
     }
 }
 
+/**
+ * @brief 
+ * 
+ * @return uint8_t 
+ */
+uint8_t ei_get_serial_byte(void)
+{
+    uint8_t data = 0xFF;
+
+    if (rx_index > 0) {
+        
+        data = rx_buffer[rx_index];
+        rx_index--;
+    }
+
+    return data;
+}
+
+/**
+ * @brief 
+ * 
+ * @param event 
+ */
 static void ei_uart_callback(uint32_t event)
 {    
     if (event & ARM_USART_EVENT_SEND_COMPLETE) {
@@ -135,6 +169,8 @@ static void ei_uart_callback(uint32_t event)
 
     if (event & ARM_USART_EVENT_RECEIVE_COMPLETE) {
         /* Receive Success */
+        rx_index++;
+        USARTdrv->Receive((void*)&rx_buffer[rx_index], 1);
         event_flags_uart |= UART_CB_RX_EVENT;
     }
 
@@ -144,6 +180,10 @@ static void ei_uart_callback(uint32_t event)
     }
 }
 
+/**
+ * @brief 
+ * 
+ */
 static void uart_hw_init(void)
 {
 #if UART_NUM == 2

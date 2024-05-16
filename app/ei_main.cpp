@@ -16,8 +16,11 @@
 
 #include "ei_main.h"
 #include "edge-impulse-sdk/porting/ei_classifier_porting.h"
+#include "edge-impulse/ingestion-sdk-platform/alif-e7/ei_at_handlers.h"
+#include "edge-impulse/ingestion-sdk-platform/alif-e7/ei_device_alif_e7.h"
 #include "npu/npu_handler.h"
 #include "board.h"
+#include "peripheral/ei_uart.h"
 
 /**
  * @brief 
@@ -25,6 +28,9 @@
  */
 void ei_main(void)
 {
+    EiDeviceAlif *dev = static_cast<EiDeviceAlif*>(EiDeviceInfo::get_device());
+    ATServer *at;
+
     if (npu_init()) {
         BOARD_LED1_Control(BOARD_LED_STATE_TOGGLE);
         BOARD_LED2_Control(BOARD_LED_STATE_TOGGLE);
@@ -36,10 +42,17 @@ void ei_main(void)
     ei_printf("Type AT+HELP to see a list of commands.\r\n");
     ei_printf("Starting main loop\r\n");
 
+    at = ei_at_init(dev);
+
     while(1) {
-        ei_sleep(500);
+        char data = ei_get_serial_byte();
+
+        do {
+            
+            at->handle(data);
+
+            data = ei_get_serial_byte();
+        } while (data != 0xFF);
         
-        BOARD_LED1_Control(BOARD_LED_STATE_TOGGLE);
-        BOARD_LED2_Control(BOARD_LED_STATE_TOGGLE);
     }
 }

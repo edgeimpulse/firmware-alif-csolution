@@ -25,6 +25,7 @@ extern "C" {
 
 extern int ei_uart_init(uint32_t baudrate);
 extern void ei_uart_send(char* bug, unsigned int len);
+extern uint8_t ei_get_serial_byte(void);
 
 #if defined(__cplusplus)
 }
