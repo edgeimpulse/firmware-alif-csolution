@@ -56,6 +56,10 @@ SECTIONS
     *pm*(.text .rodata*)
     *tgu_*(.text .rodata*)
 
+    *peripheral.c.obj(.text .rodata*)
+    *ei_at_handlers.cpp.obj(.text .rodata*)
+    *ei_device_alif_e7.cpp.obj(.text .rodata*)
+
     *lv_*.c.obj(.text .rodata*)
 
     *libg.a:*printf*(.text* .rodata*)
