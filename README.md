@@ -23,14 +23,50 @@ git submodule update
 ## Configuration
 TODO
 
+## Build
+> [!IMPORTANT]
+> To build and manage the project, you need to follow this guide on how to setup the [CMSIS-Toolbox](https://github.com/Open-CMSIS-Pack/cmsis-toolbox/blob/main/docs/README.md)
+
+### Using Arm CMSIS Solution extension
+Go to the CMSIS extension tab, and click the hammer icon.
+
+### Using the script
+Run the script with the target you want to be flashed, default is HP
+
+ie to compile HE:
+```
+build.sh HE
+```
+
+To clean:
+```
+build.sh clean
+```
+
+### Using Docker
+TODO
+
 ## Flash the board
+> [!IMPORTANT]
+> To flash the board you need to set the `SETOOLS_ROOT` environmental variable to point to the Alif Security Toolkit
+
 To Flash the board, set the jumper J15 in the following position:
 1-3
 2-4
-TODO
-Task -> Run Task -> Program with security toolkit
 
-## Connect to serial consolle
+### Flash using VS code
+Task -> Run Task -> Program with security toolkit.
+The actual config will be flashed.
+
+### Flash using script
+Run the script with the target you want to be flashed, default is HP
+
+ie to flash HE:
+```
+flash.sh HE
+```
+
+## Connect to serial console
 To connect to the board, use the following settings:
 J15
 3-5
