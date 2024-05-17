@@ -83,41 +83,18 @@ void EiDeviceAlif::set_default_data_output_baudrate(void)
  */
 EiSnapshotProperties EiDeviceAlif::get_snapshot_list(void)
 {
-    ei_device_snapshot_resolutions_t res[EI_DEVICE_N_RESOLUTIONS] = 
-    {
-        {
-            .width = 64,
-            .height = 64
-        },
-        {
-            .width = 96,
-            .height = 96
-        },
-        {
-            .width = 160,
-            .height = 160
-        },
-        {
-            .width = 320,
-            .height = 320
-        },
-        {
-            .width = 480,
-            .height = 480
-        }
-    };
-    uint8_t res_num = 0;
+    ei_device_snapshot_resolutions_t **res;
+    uint8_t res_num;
+
+    cam->get_resolutions(res, &res_num);
 
     EiSnapshotProperties props = {
         .has_snapshot = true,
         .support_stream = true,
         .color_depth = "RGB",
-        .resolutions_num = 0,
-        .resolutions = res
+        .resolutions_num = res_num,
+        .resolutions = *res
     };
-
-    props.resolutions = res;
-    props.resolutions_num = EI_DEVICE_N_RESOLUTIONS;
 
     return props;
 }

@@ -18,6 +18,10 @@
 #include CMSIS_device_header
 #include "camera.h"
 #include "Driver_CPI.h"    // Camera
+#include "bayer.h"
+#include "image_processing.h"
+
+#define BAYER_FORMAT DC1394_COLOR_FILTER_GRBG
 
 /* Camera Controller Resolution. */
 #define CAM_RESOLUTION                   CAM_RESOLUTION_560x560
@@ -130,7 +134,7 @@ int camera_init(void)
  * @param buffer 
  * @return int 
  */
-int camera_capture_frame(uint8_t* buffer)
+int camera_capture_frame(uint8_t* bufferm,uint16_t width, uint16_t height)
 {
     int ret;
 
@@ -148,6 +152,20 @@ int camera_capture_frame(uint8_t* buffer)
     // Invalidate cache before reading the camera_buffer
     SCB_CleanInvalidateDCache();
 
+    dc1394_bayer_Simple(camera_buffer, image_buffer, CAM_FRAME_WIDTH, CAM_FRAME_HEIGHT, BAYER_FORMAT);
+    // White balance function does also RGB --> BGR conversion
+    white_balance(CAM_FRAME_WIDTH, CAM_FRAME_HEIGHT, image_buffer, image_buffer);
+
+    const int rescaleWidth = width;
+    const int rescaleHeight = CAM_FRAME_HEIGHT * (float)rescaleWidth / CAM_FRAME_WIDTH;
+
+    resize_image_A(image_buffer,
+                           CAM_FRAME_WIDTH,
+                           CAM_FRAME_HEIGHT,
+                           (uint8_t*)bufferm,
+                           width,
+                           height,
+                           BYTES_PER_PIXEL);
     return ret;
 }
 

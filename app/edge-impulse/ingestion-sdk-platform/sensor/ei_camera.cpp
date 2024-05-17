@@ -78,7 +78,7 @@ bool EiAlifCamera::set_resolution(const ei_device_snapshot_resolutions_t res)
 {
     this->width = res.width;
     this->height = res.height;
-    
+
     return true;
 }
 
@@ -86,7 +86,11 @@ bool EiAlifCamera::ei_camera_capture_rgb888_packed_big_endian(
     uint8_t *image,
     uint32_t image_size)
 {
-    return camera_capture_frame(image) == 0;
+    bool taken = false;
+
+    camera_capture_frame(image, this->width, this->height);
+
+    return taken;
 }
 
 bool EiAlifCamera::get_fb_ptr(uint8_t** fb_ptr)

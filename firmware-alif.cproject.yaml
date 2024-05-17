@@ -25,10 +25,13 @@ project:
     - group: Board
       files:
         - file: app/peripheral/peripheral.c
-        - file: app/peripheral/camera/camera.c
         - file: app/peripheral/uart.c
         - file: app/peripheral/timer.c
         - file: libs/board/appkit_gen2/board_init.c
+        - file: app/peripheral/camera/camera.c
+        - file: app/peripheral/camera/color_correction.c
+        - file: app/peripheral/camera/image_processing.c
+        - file: app/peripheral/camera/bayer2rgb.c
     - group: Npu
       files:
         - file: app/npu/npu_handler.cpp

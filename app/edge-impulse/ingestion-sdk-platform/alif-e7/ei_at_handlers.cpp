@@ -17,7 +17,7 @@
 #include "ei_at_handlers.h"
 #include "firmware-sdk/at-server/ei_at_command_set.h"
 #include "firmware-sdk/ei_device_lib.h"
-//#include "model-parameters/model_metadata.h"
+#include "model-parameters/model_metadata.h"
 #include "edge-impulse-sdk/porting/ei_classifier_porting.h"
 
 EiDeviceAlif *pei_device;
@@ -84,16 +84,36 @@ ATServer *ei_at_init(EiDeviceAlif *ei_device)
  */
 static bool at_list_config(void)
 {
+    const ei_device_sensor_t *sensor_list;
+    size_t sensor_list_size;
+
+    pei_device->get_sensor_list((const ei_device_sensor_t **)&sensor_list, &sensor_list_size);
+
     ei_printf("===== Device info =====\r\n");
     at_device_info();
     ei_printf("\r\n");
     ei_printf("===== Sensors ======\r\n");
+    for (size_t ix = 0; ix < sensor_list_size; ix++) {
+        ei_printf(
+            "Name: %s, Max sample length: %hus, Frequencies: [",
+            sensor_list[ix].name,
+            sensor_list[ix].max_sample_length_s);
+        for (size_t fx = 0; fx < EI_MAX_FREQUENCIES; fx++) {
+            if (sensor_list[ix].frequencies[fx] != 0.0f) {
+                if (fx != 0) {
+                    ei_printf(", ");
+                }
+                ei_printf("%.2fHz", sensor_list[ix].frequencies[fx]);
+            }
+        }
+        ei_printf("]\n");
+    }
     ei_printf("\r\n");
     ei_printf("===== Snapshot ======\r\n");
     at_get_snapshot();
     ei_printf("\r\n");
     ei_printf("===== Inference ======\r\n");
-    //ei_printf("Sensor:           %d\r\n", EI_CLASSIFIER_SENSOR);
+    ei_printf("Sensor:           %d\r\n", EI_CLASSIFIER_SENSOR);
 #if EI_CLASSIFIER_OBJECT_DETECTION
     #if EI_CLASSIFIER_OBJECT_DETECTION_LAST_LAYER == EI_CLASSIFIER_LAST_LAYER_FOMO
         const char *model_type = "constrained_object_detection";
