@@ -24,12 +24,23 @@ git submodule update
 TODO
 
 ## Flash the board
+To Flash the board, set the jumper J15 in the following position:
+1-3
+2-4
 TODO
 Task -> Run Task -> Program with security toolkit
 
+## Connect to serial consolle
+To connect to the board, use the following settings:
+J15
+3-5
+4-6
+115200, 8, N, 1
+
+
 ## Run a debug session
 TODO
-F5
+Connect the 20pin cable to J13 and press F5.
 
 ## Update model
 TODO
