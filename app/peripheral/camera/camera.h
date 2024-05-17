@@ -17,6 +17,17 @@
 #ifndef _CAMERA_H_
 #define _CAMERA_H_
 
-int camera_init(void);
+#include <stdint.h>
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
+extern int camera_init(void);
+extern int camera_capture_frame(uint8_t* buffer);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif

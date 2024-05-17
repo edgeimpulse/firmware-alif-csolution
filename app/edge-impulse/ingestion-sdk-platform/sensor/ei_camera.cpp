@@ -15,6 +15,16 @@
  */
 
 #include "ei_camera.h"
+#include "peripheral/camera/camera.h"
+
+ei_device_snapshot_resolutions_t EiAlifCamera::resolutions[] = {
+        {96, 64},
+        {96, 96},
+        {160, 120},
+        {160, 160},
+        {240, 240},
+        {320, 240},
+    };
 
 /**
  * @brief 
@@ -26,7 +36,11 @@
  */
 bool EiAlifCamera::init(uint16_t width, uint16_t height)
 {
+    if (camera_init() != 0) {
+        return false;
+    }
     camera_found = true;
+
     return true;
 }
 
@@ -49,7 +63,8 @@ bool EiAlifCamera::deinit(void)
  */
 void EiAlifCamera::get_resolutions(ei_device_snapshot_resolutions_t **res, uint8_t *res_num)
 {
-
+    *res = &EiAlifCamera::resolutions[0];
+    *res_num = sizeof(EiAlifCamera::resolutions) / sizeof(ei_device_snapshot_resolutions_t);
 }
 
 /**
@@ -61,7 +76,23 @@ void EiAlifCamera::get_resolutions(ei_device_snapshot_resolutions_t **res, uint8
  */
 bool EiAlifCamera::set_resolution(const ei_device_snapshot_resolutions_t res)
 {
+    this->width = res.width;
+    this->height = res.height;
+    
     return true;
+}
+
+bool EiAlifCamera::ei_camera_capture_rgb888_packed_big_endian(
+    uint8_t *image,
+    uint32_t image_size)
+{
+    return camera_capture_frame(image) == 0;
+}
+
+bool EiAlifCamera::get_fb_ptr(uint8_t** fb_ptr)
+{
+    // Not implemented
+    return false;
 }
 
 /**
@@ -71,7 +102,7 @@ bool EiAlifCamera::set_resolution(const ei_device_snapshot_resolutions_t res)
  */
 ei_device_snapshot_resolutions_t EiAlifCamera::get_min_resolution(void)
 {
-    return { 96,96 };
+    return EiAlifCamera::resolutions[0];
 }
 
 /**

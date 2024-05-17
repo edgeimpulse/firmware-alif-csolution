@@ -40,6 +40,7 @@ private:
     EiDeviceMemory *data_flash;
 
 public:
+    EiAlifCamera* get_camera(void) { return cam; };
     EiDeviceAlif(void);
     void init_device_id(void) override;
     void set_default_data_output_baudrate(void) override;

@@ -36,6 +36,7 @@ EiDeviceAlif::EiDeviceAlif(void)
 {
     init_device_id();
     
+    /* Init standalone sensor */
     sensors[0].name = "Microphone";
     sensors[0].frequencies[0] = 16000;
     sensors[0].max_sample_length_s = 2;

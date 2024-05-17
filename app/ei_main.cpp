@@ -46,6 +46,8 @@ void ei_main(void)
 
     at = ei_at_init(dev);
 
+    dev->get_camera()->init(320, 240);
+
     ei_microphone_init();
 
     while(1) {

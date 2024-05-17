@@ -25,7 +25,7 @@ project:
     - group: Board
       files:
         - file: app/peripheral/peripheral.c
-        - file: app/peripheral/camera.c
+        - file: app/peripheral/camera/camera.c
         - file: app/peripheral/uart.c
         - file: app/peripheral/timer.c
         - file: libs/board/appkit_gen2/board_init.c
@@ -75,7 +75,7 @@ project:
     - component: AlifSemiconductor::Device:Startup&C Startup
     - component: ARM::CMSIS:CORE
     - component: ARM::CMSIS:DSP
-    - component: ARM::CMSIS:NN Lib@4.0.0
+    - component: ARM::CMSIS:NN Lib
     - component: EdgeImpulse::EdgeImpulse:SDK
     # Add your model here
     - component: EdgeImpulse:model:ei_francesco-project-1
@@ -117,7 +117,8 @@ project:
 
     - component: AlifSemiconductor::Device:SOC Peripherals:MHU
     - component: AlifSemiconductor::Device:SE runtime Services:core&Source
-    - component: AlifSemiconductor::Device:SE runtime Services:Initialization Helper&Source
+    - component: AlifSemiconductor::Device:SE runtime Services:Initialization
+        Helper&Source
 
     # - component: AlifSemiconductor::BSP:External peripherals:CAMERA Sensor MT9M114
     - component: AlifSemiconductor::BSP:External peripherals:CAMERA Sensor ARX3A0

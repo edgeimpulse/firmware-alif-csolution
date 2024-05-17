@@ -22,8 +22,12 @@
 
 class EiAlifCamera : public EiCamera
 {
-    private:
+private:
+    static ei_device_snapshot_resolutions_t resolutions[];
+
     bool camera_found;
+    uint16_t width;
+    uint16_t height;
 
 public:
     bool is_camera_present(void) {return camera_found;};
@@ -32,6 +36,12 @@ public:
     void get_resolutions(ei_device_snapshot_resolutions_t **res, uint8_t *res_num) override;
     bool set_resolution(const ei_device_snapshot_resolutions_t res) override;
     ei_device_snapshot_resolutions_t get_min_resolution(void) override;
+
+    bool ei_camera_capture_rgb888_packed_big_endian(
+        uint8_t *image,
+        uint32_t image_size) override;
+
+    bool get_fb_ptr(uint8_t** fb_ptr) override;
 };
 
 #endif

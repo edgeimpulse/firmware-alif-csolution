@@ -21,7 +21,6 @@
 #include "board.h"
 #include "se_services_port.h"
 #include <stdio.h>
-#include "camera.h"
 #include "power.h"
 #include "ei_uart.h"
 #include "timer.h"
@@ -65,7 +64,6 @@ void peripheral_init(void)
     //clk_init(); // for time.h clock()
 
     timer_us_init();
-    camera_init();
 }
 
 /**

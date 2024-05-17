@@ -14,6 +14,8 @@
  *
  */
 
+#include "RTE_Components.h"
+#include CMSIS_device_header
 #include "camera.h"
 #include "Driver_CPI.h"    // Camera
 
@@ -69,6 +71,11 @@ static void camera_callback(uint32_t event)
     }
 }
 
+/**
+ * @brief Intialise camera
+ * 
+ * @return int 
+ */
 int camera_init(void)
 {
     int ret = CAMERAdrv->Initialize(camera_callback);
@@ -111,6 +118,48 @@ int camera_init(void)
     if(ret != ARM_DRIVER_OK)
     {
         //printf("\r\n Error: CAMERA SENSOR Event Configuration failed.\r\n");
+        return ret;
+    }
+
+    return ret;
+}
+
+/**
+ * @brief 
+ * 
+ * @param buffer 
+ * @return int 
+ */
+int camera_capture_frame(uint8_t* buffer)
+{
+    int ret;
+
+    g_cb_events = CAM_CB_EVENT_NONE;
+
+    ret = CAMERAdrv->CaptureFrame(camera_buffer);
+
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+    // Wait for capture
+    while (!(g_cb_events & CAM_CB_EVENT_CAPTURE_STOPPED)) {
+        __WFI();
+    }
+    // Invalidate cache before reading the camera_buffer
+    SCB_CleanInvalidateDCache();
+
+    return ret;
+}
+
+int camera_start_stream()
+{
+    int ret;
+
+    g_cb_events = CAM_CB_EVENT_NONE;
+
+    ret = CAMERAdrv->CaptureVideo(camera_buffer);
+
+    if (ret != ARM_DRIVER_OK) {
         return ret;
     }
 

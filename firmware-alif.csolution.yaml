@@ -2,7 +2,7 @@
 solution:
   created-for: cmsis-toolbox@2.3.0
   cdefault:
-  
+
   target-types:
     - device: Alif Semiconductor::AE722F80F55D5LS:M55_HE
       type: HE
@@ -23,7 +23,7 @@ solution:
     - UNICODE
     - _UNICODE
     #- _DEBUG
-    
+
   build-types:
     - type: debug
       optimize: speed
@@ -37,9 +37,10 @@ solution:
   packs:
     - pack: AlifSemiconductor::Ensemble@1.1.1
     - pack: ARM::CMSIS@5.9.0
-    - pack: ARM::CMSIS-DSP@1.11.0
-    - pack: ARM::CMSIS-NN@4.0.0
-    - pack: EdgeImpulse
+    - pack: ARM::CMSIS-DSP@1.15.0
+    - pack: ARM::CMSIS-NN@4.1.0
+    - pack: EdgeImpulse::EI-SDK
+    - pack: EdgeImpulse::ei_francesco-project-1@2.0.0
   projects:
     #- project: gen2_devkit.cproject.yaml
     #- project: gen2_appkit.cproject.yaml
