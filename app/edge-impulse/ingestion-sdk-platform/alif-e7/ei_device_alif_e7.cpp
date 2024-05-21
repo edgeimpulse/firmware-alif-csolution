@@ -32,9 +32,14 @@ const ei_device_data_output_baudrate_t ei_dev_default_data_output_baudrate = {
     DEFAULT_BAUD,
 };
 
-EiDeviceAlif::EiDeviceAlif(void)
+EiDeviceAlif::EiDeviceAlif(EiDeviceMemory* mem)
 {
+    EiDeviceInfo::memory = mem;
+
     init_device_id();
+    load_config();
+
+    device_type = "ALIF_E7_APPKIT_GEN2";
     
     /* Init standalone sensor */
     sensors[0].name = "Microphone";
@@ -46,13 +51,17 @@ EiDeviceAlif::EiDeviceAlif(void)
     cam = static_cast<EiAlifCamera*>(EiCamera::get_camera());
 }
 
+EiDeviceAlif::~EiDeviceAlif()
+{
+}
+
 /**
  * @brief 
  * 
  */
 void EiDeviceAlif::init_device_id(void)
 {
-    device_id = "alif-e7";
+    //device_id = "alif-e7";
 }
 
 /**
@@ -115,7 +124,8 @@ bool EiDeviceAlif::get_sensor_list(const ei_device_sensor_t **p_sensor_list, siz
  */
 EiDeviceInfo* EiDeviceInfo::get_device(void)
 {
-    static EiDeviceAlif dev;
+    static EiDeviceRAM<1024, 32> memory(sizeof(EiConfig));
+    static EiDeviceAlif dev(&memory);
 
     return &dev;
 }

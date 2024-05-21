@@ -37,11 +37,12 @@ private:
     static const int sensors_count = EI_STANDALONE_SENSORS_COUNT;
     ei_device_sensor_t sensors[sensors_count];
     EiState state;
-    EiDeviceMemory *data_flash;
 
-public:
-    EiAlifCamera* get_camera(void) { return cam; };
-    EiDeviceAlif(void);
+public:    
+    EiDeviceAlif(EiDeviceMemory* mem);
+    ~EiDeviceAlif();
+
+    EiAlifCamera* get_camera(void) { return cam; };    
     void init_device_id(void) override;
     void set_default_data_output_baudrate(void) override;
     void set_max_data_output_baudrate(void) override;

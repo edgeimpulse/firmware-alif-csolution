@@ -31,6 +31,7 @@ static bool at_get_sample_settings(void);
 static bool at_set_sample_settings(const char **argv, const int argc);
 static bool at_get_upload_settings(void);
 static bool at_set_upload_settings(const char **argv, const int argc);
+static bool at_get_upload_host(void);
 static bool at_set_upload_host(const char **argv, const int argc);
 
 static bool at_read_buffer(const char **argv, const int argc);
@@ -71,7 +72,7 @@ ATServer *ei_at_init(EiDeviceAlif *ei_device)
     at->register_command(AT_READBUFFER, AT_READBUFFER_HELP_TEXT, nullptr, nullptr, at_read_buffer, AT_READBUFFER_ARGS);
     at->register_command(AT_MGMTSETTINGS, AT_MGMTSETTINGS_HELP_TEXT, nullptr, at_get_mgmt_settings, at_set_mgmt_settings, AT_MGMTSETTINGS_ARGS);
     at->register_command(AT_UPLOADSETTINGS, AT_UPLOADSETTINGS_HELP_TEXT, nullptr, at_get_upload_settings, at_set_upload_settings, AT_UPLOADSETTINGS_ARGS);
-    at->register_command(AT_UPLOADHOST, AT_UPLOADHOST_HELP_TEXT, nullptr, nullptr, at_set_upload_host, AT_UPLOADHOST_ARGS);
+    at->register_command(AT_UPLOADHOST, AT_UPLOADHOST_HELP_TEXT, nullptr, at_get_upload_host, at_set_upload_host, AT_UPLOADHOST_ARGS);
     at->register_command(AT_SNAPSHOT, AT_SNAPSHOT_HELP_TEXT, nullptr, at_get_snapshot, at_take_snapshot, AT_SNAPSHOT_ARGS);
     at->register_command(AT_SNAPSHOTSTREAM, AT_SNAPSHOTSTREAM_HELP_TEXT, nullptr, nullptr, at_snapshot_stream, AT_SNAPSHOTSTREAM_ARGS);
 
@@ -89,7 +90,7 @@ static bool at_list_config(void)
 
     pei_device->get_sensor_list((const ei_device_sensor_t **)&sensor_list, &sensor_list_size);
 
-    ei_printf("===== Device info =====\r\n");
+    ei_printf("===== Device info =====\n");
     at_device_info();
     ei_printf("\r\n");
     ei_printf("===== Sensors ======\r\n");
@@ -340,7 +341,7 @@ static bool at_set_mgmt_settings(const char **argv, const int argc)
 
     if (pei_device != nullptr) {
         pei_device->set_management_url(argv[0]);
-        ei_printf("OK\r\n");
+        ei_printf("OK\n");
 
         ret_val = true;
     }
@@ -441,8 +442,7 @@ static bool at_set_upload_host(const char **argv, const int argc)
         return false;
     }
 
-    if (pei_device != nullptr)
-    {
+    if (pei_device != nullptr) {
         pei_device->set_upload_host(argv[0]);
         ret_val = true;
     }
@@ -450,6 +450,21 @@ static bool at_set_upload_host(const char **argv, const int argc)
     ei_printf("OK\r\n");
 
     return ret_val;
+}
+
+/**
+ * @brief 
+ * 
+ * @return true 
+ * @return false 
+ */
+static bool at_get_upload_host(void)
+{
+    if (pei_device != nullptr) {
+        ei_printf("%s\n", pei_device->get_upload_host().c_str());
+    }
+    
+    return true;
 }
 
 /**
