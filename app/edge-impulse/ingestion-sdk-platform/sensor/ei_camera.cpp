@@ -15,6 +15,7 @@
  */
 
 #include "ei_camera.h"
+#include "ei_classifier_porting.h"
 #include "peripheral/camera/camera.h"
 
 ei_device_snapshot_resolutions_t EiAlifCamera::resolutions[] = {
@@ -39,7 +40,11 @@ bool EiAlifCamera::init(uint16_t width, uint16_t height)
     if (camera_init() != 0) {
         return false;
     }
+
     camera_found = true;
+
+    this->width = width;
+    this->height = height;
 
     return true;
 }
@@ -86,11 +91,7 @@ bool EiAlifCamera::ei_camera_capture_rgb888_packed_big_endian(
     uint8_t *image,
     uint32_t image_size)
 {
-    bool taken = false;
-
-    camera_capture_frame(image, this->width, this->height);
-
-    return taken;
+    return ((camera_capture_frame(image, this->width, this->height)*3) == image_size);    
 }
 
 bool EiAlifCamera::get_fb_ptr(uint8_t** fb_ptr)

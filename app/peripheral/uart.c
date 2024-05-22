@@ -63,15 +63,13 @@ int ei_uart_init(uint32_t baudrate)
 
     /* Initialize UART driver */
     ret = USARTdrv->Initialize(ei_uart_callback);
-    if(ret != ARM_DRIVER_OK)
-    {
+    if(ret != ARM_DRIVER_OK){
         return ret;
     }
 
     /* Power up UART peripheral */
     ret = USARTdrv->PowerControl(ARM_POWER_FULL);
-    if(ret != ARM_DRIVER_OK)
-    {
+    if(ret != ARM_DRIVER_OK) {
         return ret;
     }
 
@@ -81,29 +79,25 @@ int ei_uart_init(uint32_t baudrate)
                              ARM_USART_PARITY_NONE       |
                              ARM_USART_STOP_BITS_1       |
                              ARM_USART_FLOW_CONTROL_NONE, baudrate);
-    if(ret != ARM_DRIVER_OK)
-    {
+    if(ret != ARM_DRIVER_OK) {
         return ret;
     }
 
     /* Transmitter line */
     ret =  USARTdrv->Control(ARM_USART_CONTROL_TX, 1);
-    if(ret != ARM_DRIVER_OK)
-    {
+    if(ret != ARM_DRIVER_OK) {
         return ret;
     }
 
     /* Receiver line */
     ret =  USARTdrv->Control(ARM_USART_CONTROL_RX, 1);
-    if(ret != ARM_DRIVER_OK)
-    {
+    if(ret != ARM_DRIVER_OK) {
         return ret;
     }
 
     rx_index = 0;
     ret =  USARTdrv->Receive((void*)&rx_buffer[0], 1);
-    if(ret != ARM_DRIVER_OK)
-    {
+    if(ret != ARM_DRIVER_OK) {
         return ret;
     }
 

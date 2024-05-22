@@ -17,6 +17,7 @@
 #include "ei_at_handlers.h"
 #include "firmware-sdk/at-server/ei_at_command_set.h"
 #include "firmware-sdk/ei_device_lib.h"
+#include "firmware-sdk/ei_image_lib.h"
 #include "model-parameters/model_metadata.h"
 #include "edge-impulse-sdk/porting/ei_classifier_porting.h"
 
@@ -159,7 +160,7 @@ static bool at_device_info(void)
         ei_printf("ID:         %s\r\n", pei_device->get_device_id().c_str());
         ei_printf("Type:       %s\r\n", pei_device->get_device_type().c_str());
         ei_printf("AT Version: %s\r\n", AT_COMMAND_VERSION);
-        ei_printf("Data Transfer Baudrate: %lu\r\n", pei_device->get_data_output_baudrate());
+        ei_printf("Data Transfer Baudrate: %lu\r\n", 115200);
         ret_val = true;
     }
     else {
@@ -555,23 +556,8 @@ static bool at_take_snapshot(const char **argv, const int argc)
         use_max_baudrate = true;
     }
 
-    if(use_max_baudrate) {
-        ei_printf("OK\r\n");
-        // make sure to flush data before changing baudrate
-        ei_sleep(100);
-        pei_device->set_max_data_output_baudrate();
-        ei_sleep(100);
-    }
-
-    // take snapshot
-
-    if(use_max_baudrate) {
-        // lower baud rate
-        ei_printf("\r\nOK\r\n");
-        ei_sleep(100);
-        pei_device->set_default_data_output_baudrate();
-        // sleep a little to let the daemon attach on baud rate 115200 again...
-        ei_sleep(100);
+    if (ei_camera_take_snapshot_output_on_serial(width, height, use_max_baudrate) == false) {
+        ei_printf("ERR: Failed to take snapshot!\r\n");
     }
 
     return true;
@@ -601,15 +587,8 @@ static bool at_snapshot_stream(const char **argv, const int argc)
     }
 
     // start stream
-
-    ei_printf("Starting snapshot stream...\r\n");
-
-    if(use_max_baudrate) {
-        ei_printf("OK\r\n");
-        // make sure to flush data before changing baudrate
-        ei_sleep(100);
-        pei_device->set_max_data_output_baudrate();
-        ei_sleep(100);
+    if (ei_camera_start_snapshot_stream(width, height, use_max_baudrate) == false) {
+        return true;
     }
 
     // we do not print a new prompt!

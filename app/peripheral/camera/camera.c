@@ -143,7 +143,7 @@ int camera_capture_frame(uint8_t* bufferm,uint16_t width, uint16_t height)
     ret = CAMERAdrv->CaptureFrame(camera_buffer);
 
     if (ret != ARM_DRIVER_OK) {
-        return ret;
+        return -1;
     }
     // Wait for capture
     while (!(g_cb_events & CAM_CB_EVENT_CAPTURE_STOPPED)) {
@@ -152,24 +152,35 @@ int camera_capture_frame(uint8_t* bufferm,uint16_t width, uint16_t height)
     // Invalidate cache before reading the camera_buffer
     SCB_CleanInvalidateDCache();
 
-    dc1394_bayer_Simple(camera_buffer, image_buffer, CAM_FRAME_WIDTH, CAM_FRAME_HEIGHT, BAYER_FORMAT);
+    if (dc1394_bayer_Simple(camera_buffer, image_buffer, CAM_FRAME_WIDTH, CAM_FRAME_HEIGHT, BAYER_FORMAT) != DC1394_SUCCESS) {
+        return -2;
+    }
+
     // White balance function does also RGB --> BGR conversion
     white_balance(CAM_FRAME_WIDTH, CAM_FRAME_HEIGHT, image_buffer, image_buffer);
 
     const int rescaleWidth = width;
     const int rescaleHeight = CAM_FRAME_HEIGHT * (float)rescaleWidth / CAM_FRAME_WIDTH;
 
-    resize_image_A(image_buffer,
+    if (resize_image_A(image_buffer,
                            CAM_FRAME_WIDTH,
                            CAM_FRAME_HEIGHT,
                            (uint8_t*)bufferm,
                            width,
                            height,
-                           BYTES_PER_PIXEL);
-    return ret;
+                           BYTES_PER_PIXEL) != 0) {
+        return -3;
+    }
+
+    return (width * height);
 }
 
-int camera_start_stream()
+/**
+ * @brief 
+ * 
+ * @return int 
+ */
+int camera_start_stream(void)
 {
     int ret;
 

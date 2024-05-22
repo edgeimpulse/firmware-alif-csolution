@@ -19,6 +19,8 @@ project:
         - file: app/edge-impulse/firmware-sdk/at-server/ei_at_server.cpp
         - file: app/edge-impulse/firmware-sdk/at-server/ei_at_parser.cpp
         - file: app/edge-impulse/firmware-sdk/at-server/ei_at_command_set.cpp
+        - file: app/edge-impulse/firmware-sdk/ei_image_lib.cpp
+        - file: app/edge-impulse/firmware-sdk/ei_device_lib.cpp
         - file: app/edge-impulse/firmware-sdk/at_base64_lib.cpp
         # - file: app/edge-impulse/firmware-sdk/jpeg/JPEGENC.cpp
         # - file: app/edge-impulse/firmware-sdk/ei_device_lib.cpp
