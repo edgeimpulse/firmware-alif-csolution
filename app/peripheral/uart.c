@@ -122,12 +122,13 @@ int ei_uart_init(uint32_t baudrate)
 void ei_uart_send(char* buf, unsigned int len)
 {
     int ret = 0;
-    if (initialized)
-    {
+
+    if (initialized) {
+
         event_flags_uart = 0;
         int32_t ret = USARTdrv->Send(buf, len);
-        if(ret != ARM_DRIVER_OK)
-        {
+
+        if(ret != ARM_DRIVER_OK) {
             return;
         }
 
@@ -146,8 +147,7 @@ uint8_t ei_get_serial_byte(void)
 {
     uint8_t data = 0xFF;
 
-    if (rx_index > 0) {
-        
+    if (rx_index > 0) {        
         data = rx_buffer[rx_index];
         rx_index--;
     }
@@ -170,7 +170,7 @@ static void ei_uart_callback(uint32_t event)
     if (event & ARM_USART_EVENT_RECEIVE_COMPLETE) {
         /* Receive Success */
         rx_index++;
-        USARTdrv->Receive((void*)&rx_buffer[rx_index], 1);
+        USARTdrv->Receive((void*)&rx_buffer[rx_index], 1);        
         event_flags_uart |= UART_CB_RX_EVENT;
     }
 

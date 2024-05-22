@@ -23,6 +23,7 @@
 #include "board.h"
 #include "peripheral/ei_uart.h"
 #include "inference/ei_run_impulse.h"
+#include <stdio.h>
 
 /**
  * @brief 
@@ -41,18 +42,24 @@ void ei_main(void)
 
     cpu_cache_enable();
 
+    /* This is needed so that output of printf
+    is output immediately without buffering
+    */
+
+    //setvbuf(stdin, NULL, _IONBF, 0);
+    //setvbuf(stdout, NULL, _IONBF, 0);
+
     ei_printf("Type AT+HELP to see a list of commands.\r\n");
     ei_printf("Starting main loop\r\n");
 
     at = ei_at_init(dev);
+    at->print_prompt();
 
     dev->get_camera()->init(320, 240);
-
     ei_microphone_init();
 
     while(1) {
         /* handle command comming from uart */
-
         char data = ei_get_serial_byte();
 
         while ((uint8_t)data != 0xFF) {

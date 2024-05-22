@@ -69,9 +69,12 @@ void ei_printf(const char *format, ...)
     va_end(myargs);
     
     if (length > 0) {
-        ei_uart_send(buffer, length);        
+        ei_uart_send(buffer, length);
     }
-    
+    //fflush(stdout);
+
+    //setvbuf(stdin, NULL, _IONBF, 0);
+    //setvbuf(stdout, NULL, _IONBF, 0);
 }
 
 void ei_printf_float(float f)
@@ -122,7 +125,7 @@ void ei_printf_float(float f)
 
 void ei_putchar(char c) 
 { 
-    putchar(c); 
+    ei_uart_send(&c, 1);
     fflush(stdout);
 }
 
@@ -130,8 +133,18 @@ char ei_getchar(void)
 {
     //auto c = UartGetcNoBlock();
     char c = 0xFF;
-    if (c == 0xFF ) { return 0; } //weird ei convention
-    else { return c; ei_printf("ch: %c\r\n", c);}
+
+    c = ei_get_serial_byte();
+
+    if (c == 0xFF ) { 
+        return 0; //weird ei convention
+    }
+    else  { 
+        return c; 
+        ei_printf("ch: %c\r\n", c);
+    }
+
+    return 0;
 }
 
 void *ei_malloc(size_t size)

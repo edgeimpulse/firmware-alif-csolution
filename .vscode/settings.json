@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "*.h": "c",
+        "stdexcept": "cpp",
+        "string": "cpp"
     },
 
     "cmake.configureOnOpen": false,
