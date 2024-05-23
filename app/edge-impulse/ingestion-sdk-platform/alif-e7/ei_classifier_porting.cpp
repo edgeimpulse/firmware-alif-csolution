@@ -49,7 +49,6 @@ EI_IMPULSE_ERROR ei_sleep(int32_t time_ms)
 
 uint64_t ei_read_timer_us()
 {
-    //return Get_SysTick_Cycle_Count() / ( EI_CORE_CLOCK_HZ / 1000000 );
     return timer_get_us();
 }
 
@@ -60,7 +59,7 @@ uint64_t ei_read_timer_ms()
 
 void ei_printf(const char *format, ...)
 {
-    char buffer[256] = {0};
+    char buffer[1024] = {0};
     int length;
 
     va_list myargs;
@@ -131,7 +130,6 @@ void ei_putchar(char c)
 
 char ei_getchar(void)
 {
-    //auto c = UartGetcNoBlock();
     char c = 0xFF;
 
     c = ei_get_serial_byte();
@@ -139,12 +137,8 @@ char ei_getchar(void)
     if (c == 0xFF ) { 
         return 0; //weird ei convention
     }
-    else  { 
-        return c; 
-        ei_printf("ch: %c\r\n", c);
-    }
 
-    return 0;
+    return c;
 }
 
 void *ei_malloc(size_t size)

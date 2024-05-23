@@ -20,13 +20,19 @@
 #include <RTE_Device.h>
 #include <RTE_Components.h>
 #include CMSIS_device_header
-
 #include "Driver_USART.h"
+#include <string.h>
+
+/* Macro definition */
+#define CARRIAGE_ASCII            (13u)     /* Carriage return */
 
 #define UART_NUM 2
 
+static volatile uint8_t rx_char;
 static volatile uint8_t rx_buffer[512];
 static volatile uint16_t rx_index;
+static uint16_t idx_read;
+static volatile bool g_uart_rx_completed;
 
 #if UART_NUM == 2
 extern ARM_DRIVER_USART ARM_Driver_USART_(BOARD_UART1_INSTANCE);
@@ -96,7 +102,9 @@ int ei_uart_init(uint32_t baudrate)
     }
 
     rx_index = 0;
-    ret =  USARTdrv->Receive((void*)&rx_buffer[0], 1);
+    idx_read = 0;
+    g_uart_rx_completed = false;
+    ret =  USARTdrv->Receive((void*)&rx_char, 1);
     if(ret != ARM_DRIVER_OK) {
         return ret;
     }
@@ -141,12 +149,31 @@ uint8_t ei_get_serial_byte(void)
 {
     uint8_t data = 0xFF;
 
-    if (rx_index > 0) {        
-        data = rx_buffer[rx_index];
-        rx_index--;
+    if (g_uart_rx_completed == true) {
+        if (rx_index > 0) {
+            data = rx_buffer[idx_read++];
+            if (idx_read >= rx_index) {
+                idx_read = 0;
+                rx_index = 0;
+                g_uart_rx_completed = false;
+                memset(rx_buffer, 0, sizeof(rx_buffer));
+            }
+        }
     }
 
     return data;
+}
+
+/**
+ * @brief 
+ * 
+ */
+void ei_flush_rx_buffer(void)
+{
+    idx_read = 0;
+    rx_index = 0;
+    g_uart_rx_completed = false;
+    memset(rx_buffer, 0, sizeof(rx_buffer)); 
 }
 
 /**
@@ -163,9 +190,13 @@ static void ei_uart_callback(uint32_t event)
 
     if (event & ARM_USART_EVENT_RECEIVE_COMPLETE) {
         /* Receive Success */
-        rx_index++;
-        USARTdrv->Receive((void*)&rx_buffer[rx_index], 1);        
-        event_flags_uart |= UART_CB_RX_EVENT;
+        rx_buffer[rx_index++] = rx_char;        
+
+        if ((rx_char == CARRIAGE_ASCII) || (rx_char == 'b')) {
+        //if ((rx_char == CARRIAGE_ASCII)) {
+            g_uart_rx_completed = true;
+        }
+        USARTdrv->Receive((void*)&rx_char, 1);
     }
 
     if (event & ARM_USART_EVENT_RX_TIMEOUT) {

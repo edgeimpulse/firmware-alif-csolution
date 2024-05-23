@@ -3,12 +3,17 @@
         "*.h": "c",
         "stdexcept": "cpp",
         "string": "cpp",
-        "variant": "c"
+        "variant": "c",
+        "cstring": "c",
+        "array": "c",
+        "span": "c",
+        "string_view": "c",
+        "vector": "c"
     },
 
     "cmake.configureOnOpen": false,
 
-    "cortex-debug.variableUseNaturalFormat": false,
+    "cortex-debug.variableUseNaturalFormat": true,
     "cmsis-csolution.actions": [
         {
             "path": "firmware-alif.csolution.yaml",

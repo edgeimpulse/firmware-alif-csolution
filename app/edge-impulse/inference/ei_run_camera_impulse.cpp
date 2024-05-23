@@ -20,6 +20,8 @@
 #include "edge-impulse-sdk/dsp/image/image.hpp"
 #include "firmware-sdk/ei_camera_interface.h"
 #include "ingestion-sdk-platform/sensor/ei_camera.h"
+#include "firmware-sdk/at_base64_lib.h"
+#include "firmware-sdk/jpeg/encode_as_jpg.h"
 
 typedef enum {
     INFERENCE_STOPPED,
@@ -190,6 +192,30 @@ void ei_run_impulse(void)
     if(debug_mode) {
         ei_printf("Begin output\n");
 
+        size_t jpeg_buffer_size = EI_CLASSIFIER_INPUT_WIDTH * EI_CLASSIFIER_INPUT_HEIGHT >= 128 * 128 ?
+            8192 * 3 :
+            4096 * 4;
+        uint8_t *jpeg_buffer = NULL;
+        jpeg_buffer = (uint8_t*)ei_malloc(jpeg_buffer_size);
+        if (!jpeg_buffer) {
+            ei_printf("ERR: Failed to allocate JPG buffer\r\n");
+            return;
+        }
+
+        size_t out_size;
+        int x = encode_rgb888_signal_as_jpg(&signal, EI_CLASSIFIER_INPUT_WIDTH, EI_CLASSIFIER_INPUT_HEIGHT, jpeg_buffer, jpeg_buffer_size, &out_size);
+        if (x != 0) {
+            ei_printf("Failed to encode frame as JPEG (%d)\n", x);
+            return;
+        }
+
+        ei_printf("Framebuffer: ");
+        base64_encode((char*)jpeg_buffer, out_size, ei_putchar);
+        ei_printf("\r\n");
+
+        if (jpeg_buffer) {
+            ei_free(jpeg_buffer);
+        }
     }
 
     // run the impulse: DSP, neural network and the Anomaly algorithm

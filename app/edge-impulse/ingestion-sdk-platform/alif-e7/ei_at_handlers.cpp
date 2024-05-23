@@ -20,6 +20,8 @@
 #include "firmware-sdk/ei_image_lib.h"
 #include "model-parameters/model_metadata.h"
 #include "edge-impulse-sdk/porting/ei_classifier_porting.h"
+#include "peripheral/ei_uart.h"
+#include "inference/ei_run_impulse.h"
 
 EiDeviceAlif *pei_device;
 
@@ -160,7 +162,7 @@ static bool at_device_info(void)
         ei_printf("ID:         %s\r\n", pei_device->get_device_id().c_str());
         ei_printf("Type:       %s\r\n", pei_device->get_device_type().c_str());
         ei_printf("AT Version: %s\r\n", AT_COMMAND_VERSION);
-        ei_printf("Data Transfer Baudrate: %lu\r\n", 115200);
+        ei_printf("Data Transfer Baudrate: %lu\r\n", MAX_BAUD);
         ret_val = true;
     }
     else {
@@ -222,9 +224,9 @@ static bool at_get_sample_settings(void)
  */
 static bool at_run_nn_normal(void)
 {
-    //ei_start_impulse(false, false, false);
+    ei_start_impulse(false, false, false);
 
-    //return (is_inference_running());
+    return (is_inference_running());
     return true;
 }
 
@@ -244,9 +246,8 @@ static bool at_run_impulse_debug(const char **argv, const int argc)
         use_max_uart_speed = true;
     }
 
-    //ei_start_impulse(false, true, use_max_uart_speed);
-    //return (is_inference_running());
-    return true;
+    ei_start_impulse(false, true, use_max_uart_speed);
+    return (is_inference_running());
 }
 
 /**
@@ -256,10 +257,9 @@ static bool at_run_impulse_debug(const char **argv, const int argc)
  */
 static bool at_run_nn_normal_cont(void)
 {
-    //ei_start_impulse(true, false, false);
+    ei_start_impulse(true, false, false);
 
-    //return (is_inference_running());
-    return true;
+    return (is_inference_running());
 }
 
 /**
@@ -591,8 +591,13 @@ static bool at_snapshot_stream(const char **argv, const int argc)
         return true;
     }
 
+    ei_printf("Snapshot streaming stopped by user\n");
+    ei_printf("OK\n");
+
+    ei_flush_rx_buffer();
+
     // we do not print a new prompt!
-    return false;
+    return true;
 }
 
 /**
