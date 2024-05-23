@@ -48,6 +48,7 @@ static bool crop_required = false;
 
 static uint32_t inference_delay;
 static int ei_camera_get_data(size_t offset, size_t length, float *out_ptr);
+static void local_display_results(ei_impulse_result_t* result);
 
 /**
  * @brief 
@@ -229,7 +230,7 @@ void ei_run_impulse(void)
     }
     ei_free(snapshot_buf);
 
-    display_results(&result);
+    local_display_results(&result);
 
     if (debug_mode) {
         ei_printf("\r\n----------------------------------\r\n");
@@ -279,6 +280,65 @@ static int ei_camera_get_data(size_t offset, size_t length, float *out_ptr)
 
     // and done!
     return 0;
+}
+
+static void local_display_results(ei_impulse_result_t* result)
+{
+    // print the predictions    
+    ei_printf("Predictions (DSP: ");
+    ei_printf_float((float)result->timing.dsp_us/1000.0);
+    ei_printf(" ms., Classification: ");
+    ei_printf_float((float)result->timing.classification_us/1000.0);
+    ei_printf(" ms., Anomaly: ");
+    ei_printf_float(result->timing.anomaly_us);
+    ei_printf(" ms.): \n");
+
+#if EI_CLASSIFIER_OBJECT_DETECTION == 1
+    ei_printf("#Object detection results:\r\n");
+    bool bb_found = result->bounding_boxes[0].value > 0;
+    for (size_t ix = 0; ix < result->bounding_boxes_count; ix++) {
+        auto bb = result->bounding_boxes[ix];
+        if (bb.value == 0) {
+            continue;
+        }
+        ei_printf("    %s (", bb.label);
+        ei_printf_float(bb.value);
+        ei_printf(") [ x: %u, y: %u, width: %u, height: %u ]\n", bb.x, bb.y, bb.width, bb.height);
+    }
+
+    if (!bb_found) {
+        ei_printf("    No objects found\n");
+    }
+
+#elif (EI_CLASSIFIER_LABEL_COUNT == 1) && (!EI_CLASSIFIER_HAS_ANOMALY)// regression
+    ei_printf("#Regression results:\r\n");
+    ei_printf("    %s: ", result->classification[0].label);
+    ei_printf_float(result->classification[0].value);
+    ei_printf("\n");
+
+#elif EI_CLASSIFIER_LABEL_COUNT > 1 // if there is only one label, this is an anomaly only
+    ei_printf("#Classification results:\r\n");
+    for (size_t ix = 0; ix < EI_CLASSIFIER_LABEL_COUNT; ix++) {
+        ei_printf("    %s: ", result->classification[ix].label);
+        ei_printf_float(result->classification[ix].value);
+        ei_printf("\n");
+    }
+#endif
+#if EI_CLASSIFIER_HAS_ANOMALY == 3 // visual AD
+    ei_printf("#Visual anomaly grid results:\r\n");
+    for (uint32_t i = 0; i < result->visual_ad_count; i++) {
+        ei_impulse_result_bounding_box_t bb = result->visual_ad_grid_cells[i];
+        if (bb.value == 0) {
+            continue;
+        }
+        ei_printf("    %s (", bb.label);
+        ei_printf_float(bb.value);
+        ei_printf(") [ x: %u, y: %u, width: %u, height: %u ]\n", bb.x, bb.y, bb.width, bb.height);
+    }
+    ei_printf("Visual anomaly values: Mean %.3f Max %.3f\r\n", result->visual_ad_result.mean_value, result->visual_ad_result.max_value);
+#elif (EI_CLASSIFIER_HAS_ANOMALY > 0) // except for visual AD
+    ei_printf("Anomaly prediction: %.3f\r\n", result->anomaly);
+#endif
 }
 
 #endif /* defined(EI_CLASSIFIER_SENSOR) && EI_CLASSIFIER_SENSOR == EI_CLASSIFIER_SENSOR_CAMERA */

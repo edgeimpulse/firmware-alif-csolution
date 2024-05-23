@@ -8,7 +8,16 @@
         "array": "c",
         "span": "c",
         "string_view": "c",
-        "vector": "c"
+        "vector": "c",
+        "__bit_reference": "cpp",
+        "__node_handle": "cpp",
+        "bitset": "cpp",
+        "deque": "cpp",
+        "__memory": "cpp",
+        "limits": "cpp",
+        "optional": "cpp",
+        "ratio": "cpp",
+        "tuple": "cpp"
     },
 
     "cmake.configureOnOpen": false,
