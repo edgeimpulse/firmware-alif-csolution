@@ -80,7 +80,7 @@ void ei_printf_float(float f)
 {
     float n = f;
 
-    static double PRECISION = 0.00001;
+    static double PRECISION = 0.001;
     static int MAX_NUMBER_STRING_SIZE = 32;
 
     char s[MAX_NUMBER_STRING_SIZE];

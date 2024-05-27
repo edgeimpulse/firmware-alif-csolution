@@ -1,5 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/Open-CMSIS-Pack/devtools/tools/projmgr/2.3.0/tools/projmgr/schemas/cproject.schema.json
 project:
+
   groups:
     - group: App
       files:
@@ -81,8 +82,6 @@ project:
     - component: ARM::CMSIS:DSP
     - component: ARM::CMSIS:NN Lib
     - component: EdgeImpulse::EdgeImpulse:SDK
-    # Add your model here
-    - component: EdgeImpulse:model:ei_francesco-project-1
 
     # peripheral drivers & middleware, uncomment as needed
     # - component: AlifSemiconductor::Device:SOC Peripherals:ADC
@@ -130,7 +129,9 @@ project:
     # - component: AlifSemiconductor::BSP:External peripherals:GT911 Touch Controller
     - component: AlifSemiconductor::BSP:External peripherals:ILI9806E LCD panel
     # - component: AlifSemiconductor::BSP:External peripherals:OSPI Flash ISSI
-
+    
+  layers:
+    - layer: ./model/model.clayer.yml
   output:
     base-name: $Project$-$TargetType$
     type:

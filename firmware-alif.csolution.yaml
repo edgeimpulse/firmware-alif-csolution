@@ -40,7 +40,7 @@ solution:
     - pack: ARM::CMSIS-DSP@1.15.0
     - pack: ARM::CMSIS-NN@4.1.0
     - pack: EdgeImpulse::EI-SDK
-    - pack: EdgeImpulse::ei_francesco-project-1@2.0.0
+    
   projects:
     #- project: gen2_devkit.cproject.yaml
     #- project: gen2_appkit.cproject.yaml
