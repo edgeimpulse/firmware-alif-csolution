@@ -1,0 +1,227 @@
+/*
+ * Copyright (c) 2024 EdgeImpulse Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+#include "ei_uart.h"
+#include "pinconf.h"
+#include "board.h"
+#include <RTE_Device.h>
+#include <RTE_Components.h>
+#include CMSIS_device_header
+#include "Driver_USART.h"
+#include <string.h>
+
+/* Macro definition */
+#define CARRIAGE_ASCII            (13u)     /* Carriage return */
+
+#define UART_NUM 2
+
+static volatile uint8_t rx_char;
+static volatile uint8_t rx_buffer[512];
+static volatile uint16_t rx_index;
+static uint16_t idx_read;
+static volatile bool g_uart_rx_completed;
+
+#if UART_NUM == 2
+extern ARM_DRIVER_USART ARM_Driver_USART_(BOARD_UART1_INSTANCE);
+/* UART Driver instance */
+static ARM_DRIVER_USART *USARTdrv = &ARM_Driver_USART_(BOARD_UART1_INSTANCE);
+#elif UART_NUM == 4
+extern ARM_DRIVER_USART ARM_Driver_USART_(BOARD_UART2_INSTANCE);
+/* UART Driver instance */
+static ARM_DRIVER_USART *USARTdrv = &ARM_Driver_USART_(BOARD_UART2_INSTANCE);
+#endif
+
+#define UART_CB_TX_EVENT          (1U << 0)
+#define UART_CB_RX_EVENT          (1U << 1)
+#define UART_CB_RX_TIMEOUT        (1U << 2)
+
+static volatile uint32_t event_flags_uart;
+
+static void ei_uart_callback(uint32_t event);
+
+static bool initialized = false;
+
+/**
+ * @brief 
+ * 
+ * @return int 
+ */
+int ei_uart_init(uint32_t baudrate)
+{    
+    int32_t ret    = ARM_DRIVER_OK;
+
+    if (initialized == true) {
+        USARTdrv->Uninitialize();
+    }
+
+    /* Initialize UART driver */
+    ret = USARTdrv->Initialize(ei_uart_callback);
+    if(ret != ARM_DRIVER_OK){
+        return ret;
+    }
+
+    /* Power up UART peripheral */
+    ret = USARTdrv->PowerControl(ARM_POWER_FULL);
+    if(ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+
+    /* Configure UART to baudrate Bits/sec */
+    ret =  USARTdrv->Control(ARM_USART_MODE_ASYNCHRONOUS |
+                             ARM_USART_DATA_BITS_8       |
+                             ARM_USART_PARITY_NONE       |
+                             ARM_USART_STOP_BITS_1       |
+                             ARM_USART_FLOW_CONTROL_NONE, baudrate);
+    if(ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+
+    /* Transmitter line */
+    ret =  USARTdrv->Control(ARM_USART_CONTROL_TX, 1);
+    if(ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+
+    /* Receiver line */
+    ret =  USARTdrv->Control(ARM_USART_CONTROL_RX, 1);
+    if(ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+
+    rx_index = 0;
+    idx_read = 0;
+    g_uart_rx_completed = false;
+    ret =  USARTdrv->Receive((void*)&rx_char, 1);
+    if(ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+
+    initialized = true;
+
+    return ret;
+
+}
+
+/**
+ * @brief 
+ * 
+ * @param buf 
+ * @param len 
+ */
+void ei_uart_send(char* buf, unsigned int len)
+{
+    int ret = 0;
+
+    if (initialized) {
+
+        event_flags_uart = 0;
+        int32_t ret = USARTdrv->Send(buf, len);
+
+        if(ret != ARM_DRIVER_OK) {
+            return;
+        }
+
+        while ( (event_flags_uart & ARM_USART_EVENT_SEND_COMPLETE) == 0) {
+            __WFE();
+        }
+    }
+}
+
+/**
+ * @brief 
+ * 
+ * @return uint8_t 
+ */
+uint8_t ei_get_serial_byte(void)
+{
+    uint8_t data = 0xFF;
+
+    if (g_uart_rx_completed == true) {
+        if (rx_index > 0) {
+            data = rx_buffer[idx_read++];
+            if (idx_read >= rx_index) {
+                idx_read = 0;
+                rx_index = 0;
+                g_uart_rx_completed = false;
+                memset(rx_buffer, 0, sizeof(rx_buffer));
+            }
+        }
+    }
+
+    return data;
+}
+
+/**
+ * @brief 
+ * 
+ */
+void ei_flush_rx_buffer(void)
+{
+    idx_read = 0;
+    rx_index = 0;
+    g_uart_rx_completed = false;
+    memset(rx_buffer, 0, sizeof(rx_buffer)); 
+}
+
+/**
+ * @brief 
+ * 
+ * @param event 
+ */
+static void ei_uart_callback(uint32_t event)
+{    
+    if (event & ARM_USART_EVENT_SEND_COMPLETE) {
+        /* Send Success */
+        event_flags_uart |= UART_CB_TX_EVENT;
+    }
+
+    if (event & ARM_USART_EVENT_RECEIVE_COMPLETE) {
+        /* Receive Success */
+        rx_buffer[rx_index++] = rx_char;        
+
+        if ((rx_char == CARRIAGE_ASCII) || (rx_char == 'b')) {
+        //if ((rx_char == CARRIAGE_ASCII)) {
+            g_uart_rx_completed = true;
+        }
+        USARTdrv->Receive((void*)&rx_char, 1);
+    }
+
+    if (event & ARM_USART_EVENT_RX_TIMEOUT) {
+        /* Receive Success with rx timeout */
+        event_flags_uart |= UART_CB_RX_TIMEOUT;
+    }
+}
+
+/**
+ * @brief 
+ * 
+ */
+static void uart_hw_init(void)
+{
+#if UART_NUM == 2
+    /* UART2_RX_A */
+    pinconf_set( PORT_1, PIN_0, PINMUX_ALTERNATE_FUNCTION_1, PADCTRL_READ_ENABLE);
+
+    /* UART2_TX_A */
+    pinconf_set( PORT_1, PIN_1, PINMUX_ALTERNATE_FUNCTION_1, 0);
+#elif UART_NUM == 4
+    /* UART4_RX_B */
+    pinconf_set( PORT_12, PIN_1, PINMUX_ALTERNATE_FUNCTION_2, PADCTRL_READ_ENABLE);
+
+    /* UART4_TX_B */
+    pinconf_set( PORT_12, PIN_2, PINMUX_ALTERNATE_FUNCTION_2, 0);
+#endif
+}

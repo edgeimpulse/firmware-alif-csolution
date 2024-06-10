@@ -1,0 +1,50 @@
+{
+    "files.associations": {
+        "*.h": "c",
+        "stdexcept": "cpp",
+        "string": "cpp",
+        "variant": "c",
+        "cstring": "c",
+        "array": "c",
+        "span": "c",
+        "string_view": "c",
+        "vector": "c",
+        "__bit_reference": "cpp",
+        "__node_handle": "cpp",
+        "bitset": "cpp",
+        "deque": "cpp",
+        "__memory": "cpp",
+        "limits": "cpp",
+        "optional": "cpp",
+        "ratio": "cpp",
+        "tuple": "cpp"
+    },
+
+    "cmake.configureOnOpen": false,
+
+    "cortex-debug.variableUseNaturalFormat": true,
+    "cmsis-csolution.actions": [
+        {
+            "path": "firmware-alif.csolution.yaml",
+            "target": "HE",
+            "config": {
+                "debug": "Alif Ensemble Debug"
+            },
+            "projects": [
+                {
+                    "path": "firmware-alif.cproject.yaml",
+                    "config": {
+                        "debug": "Alif Ensemble Debug"
+                    }
+                }
+            ]
+        },
+        {
+            "path": "firmware-alif.csolution.yaml",
+            "target": "HP",
+            "config": {
+                "debug": "Alif Ensemble Debug"
+            }
+        }
+    ],
+}
