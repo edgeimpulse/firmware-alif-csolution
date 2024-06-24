@@ -56,6 +56,7 @@ project:
     - define BOARD_ALIF_DEVKIT_VARIANT: 5
     - ETHOSU55
     - EI_ETHOS
+    - ETHOSU_ARCH: u55
     - EI_ALIF_ADDR_TRANSLATION
     - ARM_NPU
     - ETHOS_U_NPU_ID: 55

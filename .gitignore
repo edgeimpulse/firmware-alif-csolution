@@ -4,5 +4,6 @@ tmp/
 *.yml
 *.cprj
 .clangd
+.vscode/
 
 !/model/*.yml

@@ -1,9 +1,0 @@
-layer:
-  type: Target
-  description: Edge Impulse model
-
-  packs:
-    - pack: EdgeImpulse::Demo_Constrained_Object_Detectio@114.0.0
-
-  components:
-    - component: EdgeImpulse:model:Demo_Constrained_Object_Detectio@114.0.0
