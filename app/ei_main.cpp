@@ -24,6 +24,8 @@
 #include "peripheral/ei_uart.h"
 #include "inference/ei_run_impulse.h"
 #include <stdio.h>
+#include "peripheral/inertial/bmi323_icm42670.h"
+#include "ei_inertial.h"
 
 /**
  * @brief 
@@ -46,8 +48,8 @@ void ei_main(void)
     is output immediately without buffering
     */
 
-    //setvbuf(stdin, NULL, _IONBF, 0);
-    //setvbuf(stdout, NULL, _IONBF, 0);
+    setvbuf(stdin, NULL, _IONBF, 0);
+    setvbuf(stdout, NULL, _IONBF, 0);
 
     ei_printf("Type AT+HELP to see a list of commands.\r\n");
     ei_printf("Starting main loop\r\n");
@@ -56,7 +58,10 @@ void ei_main(void)
     at->print_prompt();
 
     dev->get_camera()->init(320, 240);
+    // TODO: ei_microphone_init returns an error code, should we check it?
     ei_microphone_init();
+    // TODO: ei_inertial_init returns an error code, should we check it?
+    ei_inertial_init();
 
     while(1) {
         /* handle command comming from uart */

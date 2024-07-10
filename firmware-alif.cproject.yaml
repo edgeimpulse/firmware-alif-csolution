@@ -13,7 +13,9 @@ project:
         - file: app/edge-impulse/ingestion-sdk-platform/alif-e7/ei_at_handlers.cpp
         - file: app/edge-impulse/ingestion-sdk-platform/sensor/ei_microphone.cpp
         - file: app/edge-impulse/ingestion-sdk-platform/sensor/ei_camera.cpp
+        - file: app/edge-impulse/ingestion-sdk-platform/sensor/ei_inertial.cpp
         - file: app/edge-impulse/inference/ei_run_camera_impulse.cpp
+        - file: app/edge-impulse/inference/ei_run_fusion_impulse.cpp
     - group: FW-SDK
       files:
         - file: app/edge-impulse/firmware-sdk/at-server/ei_at_server_singleton.cpp
@@ -24,6 +26,13 @@ project:
         - file: app/edge-impulse/firmware-sdk/ei_device_lib.cpp
         - file: app/edge-impulse/firmware-sdk/at_base64_lib.cpp
         - file: app/edge-impulse/firmware-sdk/jpeg/JPEGENC.cpp
+        - file: app/edge-impulse/firmware-sdk/ei_fusion.cpp
+        - file: app/edge-impulse/ingestion-sdk-c/ei_sampler.cpp
+        - file: app/edge-impulse/ingestion-sdk-c/sensor_aq_mbedtls_hs256.cpp
+        - file: app/edge-impulse/firmware-sdk/sensor-aq/sensor_aq.cpp
+        - file: app/edge-impulse/firmware-sdk/QCBOR/src/qcbor_encode.c
+        - file: app/edge-impulse/firmware-sdk/QCBOR/src/UsefulBuf.c
+        - file: app/edge-impulse/firmware-sdk/QCBOR/src/ieee754.c
     - group: Board
       files:
         - file: app/peripheral/peripheral.c
@@ -34,6 +43,8 @@ project:
         - file: app/peripheral/camera/color_correction.c
         - file: app/peripheral/camera/image_processing.c
         - file: app/peripheral/camera/bayer2rgb.c
+        - file: app/peripheral/inertial/bmi323_icm42670.c
+        - file: app/peripheral/inertial/i2c_over_i3c.c
     - group: Npu
       files:
         - file: app/npu/npu_handler.cpp
@@ -52,10 +63,14 @@ project:
     - app/
     - app/edge-impulse
     - libs/board/
+    - app/edge-impulse/ingestion-sdk-platform/sensor
+    - app/edge-impulse/ingestion-sdk-c
+    - app/edge-impulse/firmware-sdk
   define:
     - define BOARD_ALIF_DEVKIT_VARIANT: 5
     - ETHOSU55
     - EI_ETHOS
+    - ETHOSU_ARCH: u55
     - EI_ALIF_ADDR_TRANSLATION
     - ARM_NPU
     - ETHOS_U_NPU_ID: 55
@@ -98,7 +113,7 @@ project:
     - component: AlifSemiconductor::Device:SOC Peripherals:I2C
     # - component: AlifSemiconductor::Device:SOC Peripherals:I2C_I3C
     # - component: AlifSemiconductor::Device:SOC Peripherals:I2S
-    # - component: AlifSemiconductor::Device:SOC Peripherals:I3C
+    - component: AlifSemiconductor::Device:SOC Peripherals:I3C
     # - component: AlifSemiconductor::Device:SOC Peripherals:LPI2C
     # - component: AlifSemiconductor::Device:SOC Peripherals:LPTIMER
     # - component: AlifSemiconductor::Device:SOC Peripherals:MHU

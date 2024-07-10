@@ -37,6 +37,11 @@ private:
     static const int sensors_count = EI_STANDALONE_SENSORS_COUNT;
     ei_device_sensor_t sensors[sensors_count];
     EiState state;
+    bool is_sampling;
+    void (*sample_read_callback)(void);
+#if MULTI_FREQ_ENABLED == 1
+    void (*sample_multi_read_callback)(uint8_t);
+#endif
 
 public:    
     EiDeviceAlif(EiDeviceMemory* mem);
@@ -48,6 +53,14 @@ public:
     void set_max_data_output_baudrate(void) override;
     EiSnapshotProperties get_snapshot_list(void) override;
     bool get_sensor_list(const ei_device_sensor_t **p_sensor_list, size_t *sensor_list_size) override;
+    bool start_sample_thread(void (*sample_read_cb)(void), float sample_interval_ms) override;
+    bool stop_sample_thread(void) override;
+
+#if MULTI_FREQ_ENABLED == 1
+    bool start_multi_sample_thread(void (*sample_multi_read_cb)(uint8_t), float* multi_sample_interval_ms, uint8_t num_fusioned) override;
+#endif
+
+    void sample_thread(void);
 };
 
 #endif

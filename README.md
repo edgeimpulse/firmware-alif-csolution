@@ -20,9 +20,6 @@ git submodule init
 git submodule update
 ```
 
-## Configuration
-TODO
-
 ## Build
 > [!IMPORTANT]
 > To build and manage the project, you need to follow this guide on how to setup the [CMSIS-Toolbox](https://github.com/Open-CMSIS-Pack/cmsis-toolbox/blob/main/docs/README.md)
@@ -31,17 +28,20 @@ TODO
 Go to the CMSIS extension tab, and click the hammer icon.
 
 ### Using the script
-Run the script with the target you want to be flashed, default is HP
+Run the script specifying the target you want to build the project for, if not specified the default is `HP`.
 
 ie to compile HE:
 ```
-build.sh HE
+sh build.sh HE
 ```
 
 To clean:
 ```
-build.sh clean
+sh build.sh clean
 ```
+
+> [!NOTE]
+> On windows, use `build_win.bat` to compile the project.
 
 ### Using Docker
 TODO
@@ -50,21 +50,26 @@ TODO
 > [!IMPORTANT]
 > To flash the board you need to set the `SETOOLS_ROOT` environmental variable to point to the Alif Security Toolkit
 
-To Flash the board, set the jumper J15 in the following position:
-1-3
-2-4
-
 ### Flash using VS code
+
+#### Flash using Secure toolkit
 Task -> Run Task -> Program with security toolkit.
 The actual config will be flashed.
 
+#### Flash using JLink
+You can use a Segger JLink to start a debug session and flash the board.
+Connect the 20-pin connector to J13 and press F5 to start.
+
 ### Flash using script
-Run the script with the target you want to be flashed, default is HP
+Run the script specifying the target you want to be flashed, if not specified the default is `HP`.
 
 ie to flash HE:
 ```
 flash.sh HE
 ```
+
+> [!NOTE]
+> On windows, use `flash_win.bat` to flash the target.
 
 ## Connect to serial console
 To connect to the board, use the following settings:
@@ -75,8 +80,7 @@ J15
 
 
 ## Run a debug session
-TODO
 Connect the 20pin cable to J13 and press F5.
 
-## Update model
-TODO
+## Update your model
+To update your model, unizp the CMSIS pack deployment, install the packs using `cpackget add <your_project_name>.pack` and paste the `model.yml` in the `model` folder.

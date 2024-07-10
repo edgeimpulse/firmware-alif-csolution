@@ -70,10 +70,6 @@ void ei_printf(const char *format, ...)
     if (length > 0) {
         ei_uart_send(buffer, length);
     }
-    //fflush(stdout);
-
-    //setvbuf(stdin, NULL, _IONBF, 0);
-    //setvbuf(stdout, NULL, _IONBF, 0);
 }
 
 void ei_printf_float(float f)

@@ -2,15 +2,18 @@
 set -e
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 
+TARGET=$1
+
 if [ -z "$SETOOLS_ROOT" ]; then
     echo "SETOOLS_ROOT is not set!"
     exit 1
 fi
 
+echo "Flashing firmware for ${TARGET}"
+
 if [ -z "$TARGET" ]; then
     TARGET="HP"
 fi
-
 
 if [ "$TARGET" == "HE" ] || [ "$TARGET" == "HP" ]; then
     cp ./out/firmware-alif/${TARGET}/debug/firmware-alif-${TARGET}.bin $SETOOLS_ROOT/build/images/alif-img.bin

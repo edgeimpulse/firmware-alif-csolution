@@ -30,6 +30,7 @@ static bool at_list_config(void);
 static bool at_clear_config(void);
 
 static bool at_device_info(void);
+static bool at_sample_start(const char **argv, const int argc);
 static bool at_get_sample_settings(void);
 static bool at_set_sample_settings(const char **argv, const int argc);
 static bool at_get_upload_settings(void);
@@ -38,6 +39,7 @@ static bool at_get_upload_host(void);
 static bool at_set_upload_host(const char **argv, const int argc);
 
 static bool at_read_buffer(const char **argv, const int argc);
+bool at_unlink_file(const char **argv, const int argc);
 static bool at_run_nn_normal(void);
 static bool at_run_nn_normal_cont(void);
 static bool at_run_impulse_debug(const char **argv, const int argc);
@@ -68,6 +70,7 @@ ATServer *ei_at_init(EiDeviceAlif *ei_device)
 
     at->register_command(AT_CONFIG, AT_CONFIG_HELP_TEXT, nullptr, at_list_config, nullptr, nullptr);
     at->register_command(AT_CLEARCONFIG, AT_CLEARCONFIG_HELP_TEXT, at_clear_config, nullptr, nullptr, nullptr);
+    at->register_command(AT_SAMPLESTART, AT_SAMPLESTART_HELP_TEXT, nullptr, nullptr, at_sample_start, AT_SAMPLESTART_ARGS);
     at->register_command(AT_SAMPLESETTINGS, AT_SAMPLESETTINGS_HELP_TEXT, nullptr, at_get_sample_settings, at_set_sample_settings, AT_SAMPLESETTINGS_ARGS);
     at->register_command(AT_RUNIMPULSE, AT_RUNIMPULSE_HELP_TEXT, at_run_nn_normal, nullptr, nullptr, nullptr);
     at->register_command(AT_RUNIMPULSEDEBUG, AT_RUNIMPULSEDEBUG_HELP_TEXT, nullptr, nullptr, at_run_impulse_debug, AT_RUNIMPULSEDEBUG_ARGS);
@@ -75,6 +78,7 @@ ATServer *ei_at_init(EiDeviceAlif *ei_device)
     at->register_command(AT_READBUFFER, AT_READBUFFER_HELP_TEXT, nullptr, nullptr, at_read_buffer, AT_READBUFFER_ARGS);
     at->register_command(AT_MGMTSETTINGS, AT_MGMTSETTINGS_HELP_TEXT, nullptr, at_get_mgmt_settings, at_set_mgmt_settings, AT_MGMTSETTINGS_ARGS);
     at->register_command(AT_UPLOADSETTINGS, AT_UPLOADSETTINGS_HELP_TEXT, nullptr, at_get_upload_settings, at_set_upload_settings, AT_UPLOADSETTINGS_ARGS);
+    at->register_command(AT_UNLINKFILE, AT_UNLINKFILE_HELP_TEXT, nullptr, nullptr, at_unlink_file, AT_UNLINKFILE_ARGS);
     at->register_command(AT_UPLOADHOST, AT_UPLOADHOST_HELP_TEXT, nullptr, at_get_upload_host, at_set_upload_host, AT_UPLOADHOST_ARGS);
     at->register_command(AT_SNAPSHOT, AT_SNAPSHOT_HELP_TEXT, nullptr, at_get_snapshot, at_take_snapshot, AT_SNAPSHOT_ARGS);
     at->register_command(AT_SNAPSHOTSTREAM, AT_SNAPSHOTSTREAM_HELP_TEXT, nullptr, nullptr, at_snapshot_stream, AT_SNAPSHOTSTREAM_ARGS);
@@ -97,21 +101,22 @@ static bool at_list_config(void)
     at_device_info();
     ei_printf("\r\n");
     ei_printf("===== Sensors ======\r\n");
-    for (size_t ix = 0; ix < sensor_list_size; ix++) {
-        ei_printf(
-            "Name: %s, Max sample length: %hus, Frequencies: [",
-            sensor_list[ix].name,
-            sensor_list[ix].max_sample_length_s);
-        for (size_t fx = 0; fx < EI_MAX_FREQUENCIES; fx++) {
-            if (sensor_list[ix].frequencies[fx] != 0.0f) {
-                if (fx != 0) {
-                    ei_printf(", ");
-                }
-                ei_printf("%.2fHz", sensor_list[ix].frequencies[fx]);
-            }
-        }
-        ei_printf("]\n");
-    }
+    // for (size_t ix = 0; ix < sensor_list_size; ix++) {
+    //     ei_printf(
+    //         "Name: %s, Max sample length: %hus, Frequencies: [",
+    //         sensor_list[ix].name,
+    //         sensor_list[ix].max_sample_length_s);
+    //     for (size_t fx = 0; fx < EI_MAX_FREQUENCIES; fx++) {
+    //         if (sensor_list[ix].frequencies[fx] != 0.0f) {
+    //             if (fx != 0) {
+    //                 ei_printf(", ");
+    //             }
+    //             ei_printf("%.2fHz", sensor_list[ix].frequencies[fx]);
+    //         }
+    //     }
+    //     ei_printf("]\n");
+    // }
+    ei_built_sensor_fusion_list();
     ei_printf("\r\n");
     ei_printf("===== Snapshot ======\r\n");
     at_get_snapshot();
@@ -289,11 +294,12 @@ static bool at_read_buffer(const char **argv, const int argc)
 
         if (use_max_baudrate) {
             ei_printf("OK\r\n");
+            ei_sleep(100);
             pei_device->set_max_data_output_baudrate();
             ei_sleep(100);
         }
 
-        //success = read_encode_send_sample_buffer(start, length);
+        success = read_encode_send_sample_buffer(start, length);
 
         if (use_max_baudrate) {
             ei_printf("\r\nOK\r\n");
@@ -311,6 +317,13 @@ static bool at_read_buffer(const char **argv, const int argc)
     }
 
     return success;
+}
+
+bool at_unlink_file(const char **argv, const int argc)
+{
+    ei_printf("\n");
+
+    return true;
 }
 
 /**
@@ -395,6 +408,45 @@ static bool at_set_upload_settings(const char **argv, const int argc)
     ei_printf("OK\r\n");
 
     return ret_val;
+}
+
+/**
+ *
+ * @param argv
+ * @param argc
+ * @return
+ */
+static bool at_sample_start(const char **argv, const int argc)
+{
+    if(argc < 1) {
+        ei_printf("Missing sensor name!\n");
+        return true;
+    }
+
+    const ei_device_sensor_t *sensor_list;
+    size_t sensor_list_size;
+
+    pei_device->get_sensor_list((const ei_device_sensor_t **)&sensor_list, &sensor_list_size);
+
+    for (size_t ix = 0; ix < sensor_list_size; ix++) {
+        if (strcmp(sensor_list[ix].name, argv[0]) == 0) {
+            if (!sensor_list[ix].start_sampling_cb()) {
+                ei_printf("ERR: Failed to start sampling\n");
+            }
+            return true;
+        }
+    }
+
+    if (ei_connect_fusion_list(argv[0], SENSOR_FORMAT)) {
+        if (!ei_fusion_setup_data_sampling()) {
+            ei_printf("ERR: Failed to start sensor fusion sampling\n");
+        }
+    }
+    else {
+        ei_printf("ERR: Failed to find sensor '%s' in the sensor list\n", argv[0]);
+    }
+
+    return true;
 }
 
 /**

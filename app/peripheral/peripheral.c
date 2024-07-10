@@ -24,6 +24,7 @@
 #include "power.h"
 #include "ei_uart.h"
 #include "timer.h"
+#include <string.h>
 
 static void my_uart_callback(uint32_t event);
 static uint32_t clock_init(void);

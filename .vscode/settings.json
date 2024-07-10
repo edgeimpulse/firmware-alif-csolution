@@ -17,7 +17,11 @@
         "limits": "cpp",
         "optional": "cpp",
         "ratio": "cpp",
-        "tuple": "cpp"
+        "tuple": "cpp",
+        "cstdlib": "c",
+        "locale": "c",
+        "new": "c",
+        "ostream": "c"
     },
 
     "cmake.configureOnOpen": false,
