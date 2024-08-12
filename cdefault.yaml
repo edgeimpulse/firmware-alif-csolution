@@ -29,7 +29,7 @@ default:
         # exclude unused sections from the iamge
         # suppress executable write segment warnings (used for ITCM)
       Library:
-        - -lm -lc -lgcc
+        - -lm -lc -lgcc -lstdc++
 
     - for-compiler: IAR
       C:

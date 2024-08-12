@@ -46,11 +46,18 @@ project:
         - file: app/peripheral/camera/bayer2rgb.c
         - file: app/peripheral/inertial/bmi323_icm42670.c
         - file: app/peripheral/inertial/i2c_over_i3c.c
+        - file: app/lv_port/lv_port_disp.c
     - group: Npu
       files:
         - file: app/npu/npu_handler.cpp
         - file: app/npu/ethosu_cpu_cache.c
         - file: app/npu/ethosu_platform_callbacks.c
+
+    # Add modified CDC200 driver with frame buffer update on vertical blanking
+    - group: Driver_CDC
+      files:
+        - file: libs/cdc_driver/Driver_CDC200.c
+        - file: libs/cdc_driver/cdc.c
 
   linker:
     - script: link-scripts/gcc_M55_HE.ld
@@ -64,11 +71,13 @@ project:
   add-path:
     - ./
     - app/
-    - app/edge-impulse
-    - libs/board/
+    - app/lv_port/
+    - app/edge-impulse    
     - app/edge-impulse/ingestion-sdk-platform/sensor
     - app/edge-impulse/ingestion-sdk-c
     - app/edge-impulse/firmware-sdk
+    - libs/board/
+    - libs/cdc_driver
   define:
     - define BOARD_ALIF_DEVKIT_VARIANT: 5
     - ETHOSU55
@@ -159,6 +168,21 @@ project:
     # - component: AlifSemiconductor::BSP:External peripherals:GT911 Touch Controller
     - component: AlifSemiconductor::BSP:External peripherals:ILI9806E LCD panel
     # - component: AlifSemiconductor::BSP:External peripherals:OSPI Flash ISSI
+
+        # LVGL v9.1
+    - component: LVGL::LVGL&LVGL9:Essential
+    - component: LVGL::LVGL&LVGL9:OS Abstraction Layer&FreeRTOS
+    - component: LVGL::LVGL&LVGL9:Demos:Assets
+    - component: LVGL::LVGL&LVGL9:Demos:Widgets
+    - component: LVGL::LVGL&LVGL9:Demos:Benchmark
+
+    # D/AVE2D driver
+    - component: AlifSemiconductor::Graphics:DAVE2D:Layer2
+    - component: AlifSemiconductor::Graphics:DAVE2D:Layer1
+    - component: AlifSemiconductor::Graphics:DAVE2D:Layer0Lib
+
+    # LVGL D/AVE2D support
+    - component: AlifSemiconductor::Graphics:Acceleration:GPU AlifSemi-Dave2D
     
   layers:
     - layer: ./model/model.clayer.yml
