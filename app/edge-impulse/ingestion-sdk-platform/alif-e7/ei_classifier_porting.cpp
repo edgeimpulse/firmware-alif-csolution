@@ -14,6 +14,8 @@
  *
  */
 
+#include "FreeRTOS.h"
+#include "task.h"
 #include "edge-impulse-sdk/porting/ei_classifier_porting.h"
 #include <inttypes.h>
 #include <math.h>
@@ -126,30 +128,31 @@ void ei_putchar(char c)
 
 char ei_getchar(void)
 {
-    char c = 0xFF;
+    // dummy implementation
+    char ch = 0;
+    return ch;
+}
 
-    c = ei_get_serial_byte();
-
-    if (c == 0xFF ) { 
-        return 0; //weird ei convention
+__attribute__((weak)) void *ei_malloc(size_t size) {
+    if (size > 0){
+        return pvPortMalloc(size);
     }
-
-    return c;
+    else {
+        return NULL;
+    }
 }
 
-void *ei_malloc(size_t size)
-{
-    return malloc(size);
+__attribute__((weak)) void *ei_calloc(size_t nitems, size_t size) {
+    if ((size*nitems) > 0) {
+        return pvPortCalloc(nitems, size);
+    }
+    else {
+        return NULL;
+    }  
 }
 
-void *ei_calloc(size_t nitems, size_t size)
-{
-    return calloc(nitems, size);
-}
-
-void ei_free(void *ptr)
-{
-    free(ptr);
+__attribute__((weak)) void ei_free(void *ptr) {
+    vPortFree(ptr);
 }
 
 #if defined(__cplusplus) && EI_C_LINKAGE == 1

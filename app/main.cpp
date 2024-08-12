@@ -18,15 +18,38 @@
 #include CMSIS_device_header
 #include "FreeRTOS.h"
 #include "FreeRTOSConfig.h"
+#include "event_groups.h"
 #include "task.h"
 #include "ei_main.h"
 #include "peripheral/peripheral.h"
+#include "npu/npu_handler.h"
+#include <cstdio>
+#include "board.h"
+
+EventGroupHandle_t common_event_group;
+
+uint8_t ucHeap[ configTOTAL_HEAP_SIZE ] __attribute__((aligned(32), section(".heap")));
 
 int main (void)
 {
-    peripheral_init();
+    peripheral_init();    
+    cpu_cache_enable();
+
+    if (npu_init()) {
+        BOARD_LED1_Control(BOARD_LED_STATE_TOGGLE);
+        BOARD_LED2_Control(BOARD_LED_STATE_TOGGLE);
+        //ei_sleep(1000);
+    }
+    /* This is needed so that output of printf
+    is output immediately without buffering
+    */
+
+    setvbuf(stdin, NULL, _IONBF, 0);
+    setvbuf(stdout, NULL, _IONBF, 0);
 
     ei_main_start();
+
+    common_event_group = xEventGroupCreate();
 
     // Start thread execution
     vTaskStartScheduler();

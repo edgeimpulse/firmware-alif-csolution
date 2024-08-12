@@ -14,12 +14,16 @@
  *
  */
 
-#include "ei_uart.h"
-#include "pinconf.h"
-#include "board.h"
 #include <RTE_Device.h>
 #include <RTE_Components.h>
 #include CMSIS_device_header
+#include "FreeRTOS.h"
+#include "timers.h"
+#include "event_groups.h"
+#include "common_events.h"
+#include "ei_uart.h"
+#include "pinconf.h"
+#include "board.h"
 #include "Driver_USART.h"
 #include <string.h>
 
@@ -145,7 +149,7 @@ void ei_uart_send(char* buf, unsigned int len)
  * 
  * @return uint8_t 
  */
-uint8_t ei_get_serial_byte(void)
+uint8_t ei_get_serial_byte(uint8_t is_inference_running)
 {
     uint8_t data = 0xFF;
 
@@ -183,6 +187,8 @@ void ei_flush_rx_buffer(void)
  */
 static void ei_uart_callback(uint32_t event)
 {    
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
     if (event & ARM_USART_EVENT_SEND_COMPLETE) {
         /* Send Success */
         event_flags_uart |= UART_CB_TX_EVENT;
@@ -195,6 +201,12 @@ static void ei_uart_callback(uint32_t event)
         if ((rx_char == CARRIAGE_ASCII) || (rx_char == 'b')) {
         //if ((rx_char == CARRIAGE_ASCII)) {
             g_uart_rx_completed = true;
+
+            xEventGroupSetBitsFromISR(
+                common_event_group,      /* The event group being updated. */
+                EVENT_RX_READY,         /* The bits being set. */
+                &xHigherPriorityTaskWoken );
+
         }
         USARTdrv->Receive((void*)&rx_char, 1);
     }
@@ -203,6 +215,8 @@ static void ei_uart_callback(uint32_t event)
         /* Receive Success with rx timeout */
         event_flags_uart |= UART_CB_RX_TIMEOUT;
     }
+
+    portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 }
 
 /**

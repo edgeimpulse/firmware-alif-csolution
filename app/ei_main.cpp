@@ -13,18 +13,18 @@
  * limitations under the License.
  *
  */
+
 #include "FreeRTOS.h"
+#include "event_groups.h"
 #include "task.h"
+#include "common_events.h"
 #include "ei_main.h"
 #include "edge-impulse-sdk/porting/ei_classifier_porting.h"
 #include "edge-impulse/ingestion-sdk-platform/alif-e7/ei_at_handlers.h"
 #include "edge-impulse/ingestion-sdk-platform/alif-e7/ei_device_alif_e7.h"
 #include "edge-impulse/ingestion-sdk-platform/sensor/ei_microphone.h"
-#include "npu/npu_handler.h"
-#include "board.h"
 #include "peripheral/ei_uart.h"
 #include "inference/ei_run_impulse.h"
-#include <stdio.h>
 #include "peripheral/inertial/bmi323_icm42670.h"
 #include "ei_inertial.h"
 
@@ -56,21 +56,8 @@ static void ei_main_task(void *pvParameters)
     (void)pvParameters;
     EiDeviceAlif *dev = static_cast<EiDeviceAlif*>(EiDeviceInfo::get_device());
     ATServer *at;
-
-    if (npu_init()) {
-        BOARD_LED1_Control(BOARD_LED_STATE_TOGGLE);
-        BOARD_LED2_Control(BOARD_LED_STATE_TOGGLE);
-        ei_sleep(1000);
-    }
-
-    cpu_cache_enable();
-
-    /* This is needed so that output of printf
-    is output immediately without buffering
-    */
-
-    setvbuf(stdin, NULL, _IONBF, 0);
-    setvbuf(stdout, NULL, _IONBF, 0);
+    EventBits_t event_bit;
+    bool in_rx_loop = false;
 
     ei_printf("Type AT+HELP to see a list of commands.\r\n");
     ei_printf("Starting main loop\r\n");
@@ -84,6 +71,7 @@ static void ei_main_task(void *pvParameters)
     // TODO: ei_inertial_init returns an error code, should we check it?
     ei_inertial_init();
 
+#if 0
     while(1) {
         /* handle command comming from uart */
         char data = ei_get_serial_byte();
@@ -105,4 +93,32 @@ static void ei_main_task(void *pvParameters)
         }
         
     }
+#endif
+
+    // Event loop
+    while (1) {
+        event_bit = xEventGroupWaitBits(common_event_group, 
+                                        EVENT_RX_READY,    //  uxBitsToWaitFor 
+                                        pdTRUE,                 //  xClearOnExit
+                                        pdFALSE,                //  xWaitForAllBits
+                                        portMAX_DELAY);
+
+        if (event_bit & EVENT_RX_READY) {
+            char data = ei_get_serial_byte(is_inference_running());
+
+            in_rx_loop = false;
+
+            while ((uint8_t)data != 0xFF) {
+                if ((is_inference_running() == true) && (data == 'b') && (in_rx_loop == false)) {
+                    ei_stop_impulse();
+                    at->print_prompt();
+                    continue;
+                }
+
+                in_rx_loop = true;
+                at->handle(data);
+                data = ei_get_serial_byte(is_inference_running());
+            }
+        }
+    } // while(1)
 }

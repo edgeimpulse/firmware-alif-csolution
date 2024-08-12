@@ -14,22 +14,16 @@
  *
  */
 
-#ifndef _EI_UART_H_
-#define _EI_UART_H_
+#ifndef COMMON_EVENTS_H_
+#define COMMON_EVENTS_H_
 
-#include <stdint.h>
+#include "FreeRTOS.h"
+#include "event_groups.h"
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
+extern EventGroupHandle_t common_event_group;
 
-extern int ei_uart_init(uint32_t baudrate);
-extern void ei_uart_send(char* bug, unsigned int len);
-extern uint8_t ei_get_serial_byte(uint8_t is_inference_running);
-extern void ei_flush_rx_buffer(void);
+#define EVENT_RX_READY                  (1 << 0)
+#define EVENT_TX_DONE                   (1 << 1)
+#define EVENT_TX_EMPTY                  (1 << 2)
 
-#if defined(__cplusplus)
-}
-#endif
-
-#endif
+#endif /* COMMON_EVENTS_H_ */
