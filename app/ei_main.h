@@ -17,6 +17,6 @@
 #ifndef _EI_MAIN_H_
 #define _EI_MAIN_H_
 
-extern void ei_main(void);
+extern void ei_main_start(void);
 
 #endif

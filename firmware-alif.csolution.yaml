@@ -50,6 +50,7 @@ solution:
     - pack: ARM::CMSIS@5.9.0
     - pack: ARM::CMSIS-DSP@1.15.0
     - pack: ARM::CMSIS-NN@4.1.0
+    - pack: ARM::CMSIS-FreeRTOS@10.5.1    
     - pack: EdgeImpulse::EI-SDK
     
   projects:

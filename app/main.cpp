@@ -16,6 +16,9 @@
 
 #include "RTE_Components.h"
 #include CMSIS_device_header
+#include "FreeRTOS.h"
+#include "FreeRTOSConfig.h"
+#include "task.h"
 #include "ei_main.h"
 #include "peripheral/peripheral.h"
 
@@ -23,9 +26,12 @@ int main (void)
 {
     peripheral_init();
 
-    ei_main();
+    ei_main_start();
 
-    while (1) __WFI();
+    // Start thread execution
+    vTaskStartScheduler();
+
+    //while (1) __WFI();
 
     return 0;
 }

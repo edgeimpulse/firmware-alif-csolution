@@ -1,5 +1,5 @@
 out/
-RTE/
+RTE/_*
 tmp/
 *.yml
 *.cprj

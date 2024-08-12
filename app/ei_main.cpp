@@ -13,7 +13,8 @@
  * limitations under the License.
  *
  */
-
+#include "FreeRTOS.h"
+#include "task.h"
 #include "ei_main.h"
 #include "edge-impulse-sdk/porting/ei_classifier_porting.h"
 #include "edge-impulse/ingestion-sdk-platform/alif-e7/ei_at_handlers.h"
@@ -27,12 +28,32 @@
 #include "peripheral/inertial/bmi323_icm42670.h"
 #include "ei_inertial.h"
 
+// ei main task parameters
+#define EI_MAIN_TASK_STACK_SIZE_BYTE        (4096u)
+#define EI_MAIN_TASK_PRIORITY               (configMAX_PRIORITIES - 2)
+static TaskHandle_t ei_main_task_handle;
+static void ei_main_task(void *pvParameters);
+
+void ei_main_start(void)
+{
+    if (xTaskCreate(ei_main_task,
+        (const char*) "EI Main Thread",
+        EI_MAIN_TASK_STACK_SIZE_BYTE / 4, // in words
+        NULL, //pvParameters
+        EI_MAIN_TASK_PRIORITY, //uxPriority
+        &ei_main_task_handle) != pdPASS) {
+        ei_printf("Failed to create EI Main Thread\r\n");
+    }
+        
+}
+
 /**
  * @brief 
  * 
  */
-void ei_main(void)
+static void ei_main_task(void *pvParameters)
 {
+    (void)pvParameters;
     EiDeviceAlif *dev = static_cast<EiDeviceAlif*>(EiDeviceInfo::get_device());
     ATServer *at;
 

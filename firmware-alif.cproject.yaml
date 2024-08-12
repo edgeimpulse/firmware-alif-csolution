@@ -95,10 +95,21 @@ project:
 
   components:
     # needed for Alif Ensemble support    
+    # Arm CMSIS components
     - component: ARM::CMSIS:CORE
     - component: ARM::CMSIS:DSP
     - component: ARM::CMSIS:NN Lib
+
+    # FreeRTOS components
+    - component: ARM::RTOS&FreeRTOS:Core&Cortex-M
+    - component: ARM::RTOS&FreeRTOS:Config&FreeRTOS
+    - component: ARM::RTOS&FreeRTOS:Event Groups
+    - component: ARM::RTOS&FreeRTOS:Heap&Heap_4
+    
+    # Edge Impulse SDK
     - component: EdgeImpulse::EdgeImpulse:SDK
+
+    # Alif components
     - component: AlifSemiconductor::Device:Startup
 
     # peripheral drivers & middleware, uncomment as needed
