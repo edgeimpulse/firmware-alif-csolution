@@ -45,15 +45,22 @@ EiDeviceAlif::EiDeviceAlif(EiDeviceMemory* mem)
     init_device_id();
     load_config();
 
-    device_type = "ALIF_E7_APPKIT_GEN2";
-
-#if defined (MIC_ENABLED)
-    /* Init standalone sensor */
-    sensors[0].name = "Microphone";
-    sensors[0].frequencies[0] = 16000;
-    sensors[0].max_sample_length_s = 2;
-    sensors[0].start_sampling_cb = ei_microphone_sample_record;
+#if defined (CORE_M55_HE)
+    device_type = "ALIF_E7_APPKIT_GEN2_HE";
+#else
+    device_type = "ALIF_E7_APPKIT_GEN2_HP";
 #endif
+
+    /* Init standalone sensor */
+    sensors[MICROPHONE].name = "Microphone";
+    sensors[MICROPHONE].frequencies[0] = 16000;
+    sensors[MICROPHONE].max_sample_length_s = 10;
+    sensors[MICROPHONE].start_sampling_cb = ei_microphone_sample_start_mono;
+
+    sensors[MICROPHONE_2CH].name = "Microphone 2 channels";
+    sensors[MICROPHONE_2CH].frequencies[0] = 16000;
+    sensors[MICROPHONE_2CH].max_sample_length_s = 5;
+    sensors[MICROPHONE_2CH].start_sampling_cb = ei_microphone_sample_start_stereo;
 
     /* Init camera instance */
     cam = static_cast<EiAlifCamera*>(EiCamera::get_camera());
@@ -78,6 +85,10 @@ void EiDeviceAlif::init_device_id(void)
     uint8_t eui[5] = {0x04, 0x03, 0x02, 0x01, 0x00};
 
     SERVICES_system_get_eui_extension(se_services_s_handle, false, eui, &service_error_code);
+
+#if defined (CORE_M55_HE)
+    eui[0] = eui[0] ^ 0x01; // to differentiate between HE and HP
+#endif
 
     snprintf(temp, sizeof(temp), "%02x:%02x:%02x:%02x:%02x",
         eui[4],
@@ -148,7 +159,7 @@ bool EiDeviceAlif::get_sensor_list(const ei_device_sensor_t **p_sensor_list, siz
  */
 EiDeviceInfo* EiDeviceInfo::get_device(void)
 {
-    static EiDeviceRAM<4096, 32> memory(sizeof(EiConfig));
+    __attribute__((aligned(32), section(".bss.device_info")))  static EiDeviceRAM<262144, 4> memory(sizeof(EiConfig));
     static EiDeviceAlif dev(&memory);
 
     return &dev;

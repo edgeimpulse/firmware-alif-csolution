@@ -17,13 +17,7 @@
 #include "timer.h"
 #include "Driver_UTIMER.h"
 
-#if defined(M55_HE)
-#define CORE_CLOCK_HZ 160000000
-#elif defined(M55_HP)
-#define CORE_CLOCK_HZ 400000000 //default to M55_0 core
-#else
-#error "Wrong core defined
-#endif
+#define UTIMER_CLOCK_HZ 400000000
 
 /* UTIMER0 Driver instance */
 extern ARM_DRIVER_UTIMER DRIVER_UTIMER0;
@@ -57,7 +51,7 @@ int timer_us_init(void)
     uint32_t count_array[2];
 
     timer_overflow_times = 0;
-    div_ratio = (CORE_CLOCK_HZ / MICROSECONDS_TO_SECONDS);
+    div_ratio = (UTIMER_CLOCK_HZ / MICROSECONDS_TO_SECONDS);
 
     count_array[0] = 0x00000000;   /*< initial counter value >*/
     count_array[1] = 0xFFFFFFFF;    /*< over flow count value >*/
@@ -142,7 +136,7 @@ int timer_sensor_start(uint32_t period_ms)
     sensor_interrupt = false;
 
     count_array[0] = 0x00000000;   /*< initial counter value >*/
-    count_array[1] = (period_ms * (CORE_CLOCK_HZ/1000));
+    count_array[1] = (period_ms * (UTIMER_CLOCK_HZ/1000));
 
     ret = ptrUTIMER->Initialize (SENSOR_TIMER_CHANNEL, sensor_utimer_cb);
     if (ret != ARM_DRIVER_OK) {

@@ -101,21 +101,21 @@ static bool at_list_config(void)
     at_device_info();
     ei_printf("\r\n");
     ei_printf("===== Sensors ======\r\n");
-    // for (size_t ix = 0; ix < sensor_list_size; ix++) {
-    //     ei_printf(
-    //         "Name: %s, Max sample length: %hus, Frequencies: [",
-    //         sensor_list[ix].name,
-    //         sensor_list[ix].max_sample_length_s);
-    //     for (size_t fx = 0; fx < EI_MAX_FREQUENCIES; fx++) {
-    //         if (sensor_list[ix].frequencies[fx] != 0.0f) {
-    //             if (fx != 0) {
-    //                 ei_printf(", ");
-    //             }
-    //             ei_printf("%.2fHz", sensor_list[ix].frequencies[fx]);
-    //         }
-    //     }
-    //     ei_printf("]\n");
-    // }
+    for (size_t ix = 0; ix < sensor_list_size; ix++) {
+        ei_printf(
+            "Name: %s, Max sample length: %hus, Frequencies: [",
+            sensor_list[ix].name,
+            sensor_list[ix].max_sample_length_s);
+        for (size_t fx = 0; fx < EI_MAX_FREQUENCIES; fx++) {
+            if (sensor_list[ix].frequencies[fx] != 0.0f) {
+                if (fx != 0) {
+                    ei_printf(", ");
+                }
+                ei_printf("%.2fHz", sensor_list[ix].frequencies[fx]);
+            }
+        }
+        ei_printf("]\n");
+    }
     ei_built_sensor_fusion_list();
     ei_printf("\r\n");
     ei_printf("===== Snapshot ======\r\n");

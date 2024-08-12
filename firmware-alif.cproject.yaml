@@ -16,6 +16,7 @@ project:
         - file: app/edge-impulse/ingestion-sdk-platform/sensor/ei_inertial.cpp
         - file: app/edge-impulse/inference/ei_run_camera_impulse.cpp
         - file: app/edge-impulse/inference/ei_run_fusion_impulse.cpp
+        - file: app/edge-impulse/inference/ei_run_audio_impulse.cpp
     - group: FW-SDK
       files:
         - file: app/edge-impulse/firmware-sdk/at-server/ei_at_server_singleton.cpp
@@ -57,7 +58,9 @@ project:
       for-context: +HE
     - script: link-scripts/gcc_M55_HP.ld
       for-compiler: GCC
-      for-context: +HP
+      for-context:
+        - +HP
+        - +HP_SRAM
   add-path:
     - ./
     - app/
@@ -91,28 +94,28 @@ project:
   #  - pack: AlifSemiconductor::Ensemble@1.1.1
 
   components:
-    # needed for Alif Ensemble support
-    - component: AlifSemiconductor::Device:Startup&C Startup
+    # needed for Alif Ensemble support    
     - component: ARM::CMSIS:CORE
     - component: ARM::CMSIS:DSP
     - component: ARM::CMSIS:NN Lib
     - component: EdgeImpulse::EdgeImpulse:SDK
+    - component: AlifSemiconductor::Device:Startup
 
     # peripheral drivers & middleware, uncomment as needed
     # - component: AlifSemiconductor::Device:SOC Peripherals:ADC
     # - component: AlifSemiconductor::Device:SOC Peripherals:CAN-FD
-    # - component: AlifSemiconductor::Device:SOC Peripherals:CDC
+    - component: AlifSemiconductor::Device:SOC Peripherals:CDC
     - component: AlifSemiconductor::Device:SOC Peripherals:CPI
     # - component: AlifSemiconductor::Device:SOC Peripherals:CRC
     # - component: AlifSemiconductor::Device:SOC Peripherals:DAC
-    # - component: AlifSemiconductor::Device:SOC Peripherals:DMA
+    - component: AlifSemiconductor::Device:SOC Peripherals:DMA
     # - component: AlifSemiconductor::Device:SOC Peripherals:Ethernet MAC
     - component: AlifSemiconductor::Device:SOC Peripherals:GPIO
     # - component: AlifSemiconductor::Device:SOC Peripherals:HSCMP
     # - component: AlifSemiconductor::Device:SOC Peripherals:HWSEM
     - component: AlifSemiconductor::Device:SOC Peripherals:I2C
     # - component: AlifSemiconductor::Device:SOC Peripherals:I2C_I3C
-    # - component: AlifSemiconductor::Device:SOC Peripherals:I2S
+    - component: AlifSemiconductor::Device:SOC Peripherals:I2S
     - component: AlifSemiconductor::Device:SOC Peripherals:I3C
     # - component: AlifSemiconductor::Device:SOC Peripherals:LPI2C
     # - component: AlifSemiconductor::Device:SOC Peripherals:LPTIMER

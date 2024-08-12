@@ -23,8 +23,11 @@ ei_device_snapshot_resolutions_t EiAlifCamera::resolutions[] = {
         {96, 96},
         {160, 120},
         {160, 160},
+        {224, 224},
         {240, 240},
+#if defined (CORE_M55_HP)
         {320, 240},
+#endif
     };
 
 /**
@@ -108,6 +111,33 @@ bool EiAlifCamera::get_fb_ptr(uint8_t** fb_ptr)
 ei_device_snapshot_resolutions_t EiAlifCamera::get_min_resolution(void)
 {
     return EiAlifCamera::resolutions[0];
+}
+
+/**
+ * @brief 
+ * 
+ * @param required_width 
+ * @param required_height 
+ * @return ei_device_snapshot_resolutions_t 
+ */
+ei_device_snapshot_resolutions_t EiAlifCamera::search_resolution(uint32_t required_width, uint32_t required_height)
+{
+    ei_device_snapshot_resolutions_t res;
+    uint16_t max_width;
+    uint16_t max_height;
+
+    camera_get_max_res(&max_width, &max_height);
+
+    if ((required_width < max_width) && (required_height < max_height)) {
+        res.height = required_height;
+        res.width = required_width;
+    }
+    else {
+        res.height = max_height;
+        res.width = max_width;
+    }
+
+    return res;
 }
 
 /**

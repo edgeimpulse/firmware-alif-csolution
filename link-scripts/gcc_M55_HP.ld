@@ -27,8 +27,8 @@
  * limitations under the License.
  */
 
-__STACK_SIZE    = 0x00008000;
-__HEAP_SIZE     = 0x00010000;
+__STACK_SIZE    = 0x00001000;
+__HEAP_SIZE     = 0x00030000;
 __ROM_BASE      = 0x80000000;
 __ROM_SIZE      = 0x0057F000;
 
@@ -124,15 +124,17 @@ SECTIONS
   } > DTCM AT> MRAM
 
   .bss.at_sram0 (NOLOAD) : ALIGN(8)
-  {
-    * (.bss.lcd_crop_and_interpolate_buf)  /* LCD crop and intrepolate image processing buffer. */
-    * (.bss.lcd_frame_buf)                 /* LCD frame Buffer. */
+  {    
+    * (.tensor_arena_buf)
   } > SRAM0
 
   .bss.at_sram1 (NOLOAD) : ALIGN(8)
   {
+    * (.bss.lcd_crop_and_interpolate_buf)  /* LCD crop and intrepolate image processing buffer. */
+    * (.bss.lcd_frame_buf)                 /* LCD frame Buffer. */
     * (.bss.camera_frame_buf)              /* Camer Frame Buffer */
     * (.bss.camera_frame_bayer_to_rgb_buf) /* (Optional) Camera Frame Buffer for Bayer to RGB Conversion. */
+    * (.bss.device_info)
   } > SRAM1
 
   .bss.itcm (NOLOAD) : ALIGN(8)

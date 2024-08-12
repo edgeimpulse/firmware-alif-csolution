@@ -25,6 +25,7 @@ extern "C" {
 
 extern int camera_init(void);
 extern int camera_capture_frame(uint8_t* bufferm, uint16_t width, uint16_t height);
+extern void camera_get_max_res(uint16_t* width, uint16_t* height);
 
 #if defined(__cplusplus)
 }

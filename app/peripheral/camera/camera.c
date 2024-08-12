@@ -194,3 +194,15 @@ int camera_start_stream(void)
 
     return ret;
 }
+
+/**
+ * @brief 
+ * 
+ * @param width 
+ * @param height 
+ */
+void camera_get_max_res(uint16_t* width, uint16_t* height)
+{
+    *width = CAM_FRAME_WIDTH;
+    *height = CAM_FRAME_HEIGHT;
+}

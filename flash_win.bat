@@ -10,7 +10,7 @@ set TARGET=%1
 
 if not defined TARGET SET TARGET="HP"
 
-if %TARGET% NEQ "HP" and %TARGET% NEQ "HE" goto INVALIDTARGET
+if %TARGET% NEQ "HP" and %TARGET% NEQ "HE" and %TARGET% NEQ "HP_SRAM" goto INVALIDTARGET
 
 copy out\firmware-alif\%TARGET%\debug\firmware-alif-%TARGET%.bin %SETOOLS_ROOT%\build\images\alif-img.bin
 copy .alif\m55-%TARGET%_cfg.json %SETOOLS_ROOT%\alif-img.json

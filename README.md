@@ -7,6 +7,13 @@ The default hardware is Gen 2 Ensemble DevKit with camera module and display.
 The required software setup consists of VSCode, Git, CMake, cmsis-toolbox, Arm GNU toolchain, Alif tools and JLink (for debugging).
 Please refer to the [Getting Started Guide](https://alifsemi.com/download/AUGD0012) for more details.
 
+> [!Note]
+> The firmware by default uses the MT9M114 camera sensor, if you have ARX3A0 camera, modify the [firmware-alif.cproject.yaml](firmware-alif.cproject.yaml)
+> ```
+> # - component: AlifSemiconductor::BSP:External peripherals:CAMERA Sensor MT9M114
+> - component: AlifSemiconductor::BSP:External peripherals:CAMERA Sensor ARX3A0
+> ```
+
 ## Prerequisites
 1. Create an edge impulse account at [edgeimpulse.com](https://www.edgeimpulse.com/)
 2. Install the latest `Alif Security Toolkit`:
@@ -35,6 +42,11 @@ ie to compile HE:
 sh build.sh HE
 ```
 
+Large models that don't fit into `DTCM` memory can be placed in the `SRAM0` section using the `HP_SRAM` argument:
+```
+sh build.sh HP_SRAM
+```
+
 To clean:
 ```
 sh build.sh clean
@@ -59,6 +71,9 @@ The actual config will be flashed.
 #### Flash using JLink
 You can use a Segger JLink to start a debug session and flash the board.
 Connect the 20-pin connector to J13 and press F5 to start.
+
+> [!NOTE]
+> When you start a debug session for a specific core, make sure you already flashed the bin for the core using the Security Toolkit, otherwise JLink can't connect to the core.
 
 ### Flash using script
 Run the script specifying the target you want to be flashed, if not specified the default is `HP`.

@@ -19,9 +19,7 @@ default:
         - -flax-vector-conversions
         - -fno-exceptions
 
-      Link:        
-        #- --specs=nano.specs
-        #- --specs=rdimon.specs
+      Link:
         - --specs=nosys.specs
         - --entry=Reset_Handler
         - -Wl,-Map=linker.map,--cref,-print-memory-usage,--gc-sections,--no-warn-rwx-segments

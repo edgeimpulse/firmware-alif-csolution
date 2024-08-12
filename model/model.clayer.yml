@@ -1,9 +1,9 @@
 layer:
-  type: model
+  type: Target
   description: Edge Impulse model
-  
+
   packs:
-    - pack: EdgeImpulse::ei_francesco-project-1
+    - pack: EdgeImpulse::Demo_Constrained_Object_Detectio@117.0.0
 
   components:
-    - component: EdgeImpulse:model:ei_francesco-project-1
+    - component: EdgeImpulse:model:Demo_Constrained_Object_Detectio@117.0.0

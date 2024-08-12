@@ -24,7 +24,6 @@
 
 /* Const defines ----------------------------------------------------------- */
 #define EI_DEVICE_N_RESOLUTIONS     5
-#define EI_STANDALONE_SENSORS_COUNT 1
 
 /* Supported baud rates --------------------------------------------------- */
 #define DEFAULT_BAUD    115200
@@ -33,9 +32,16 @@
 class EiDeviceAlif : public EiDeviceInfo
 {
 private:
-    EiAlifCamera *cam;
-    static const int sensors_count = EI_STANDALONE_SENSORS_COUNT;
-    ei_device_sensor_t sensors[sensors_count];
+    /** Sensors */
+    typedef enum
+    {
+        MICROPHONE = 0,
+        MICROPHONE_2CH,    
+        MAX_USED_SENSOR
+    } used_sensors_t;
+    
+    EiAlifCamera *cam;    
+    ei_device_sensor_t sensors[MAX_USED_SENSOR];    
     EiState state;
     bool is_sampling;
     void (*sample_read_callback)(void);
