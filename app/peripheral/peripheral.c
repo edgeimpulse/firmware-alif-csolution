@@ -45,13 +45,13 @@ void peripheral_init(void)
     BOARD_LED1_Control(BOARD_LED_STATE_LOW);
     BOARD_LED2_Control(BOARD_LED_STATE_LOW);
 
-    /* Initialize the SE services */
-    se_services_port_init();
-
     /* Enable MIPI power. TODO: To be changed to aiPM call */
     enable_mipi_dphy_power();
     disable_mipi_dphy_isolation();
-    
+
+    /* Initialize the SE services */
+    se_services_port_init();
+
     if (clock_init() != 0) {
 
         BOARD_LED1_Control(BOARD_LED_STATE_HIGH);

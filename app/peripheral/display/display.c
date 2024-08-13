@@ -1,38 +1,21 @@
-/**
- * @file lv_port_disp.c
- *
- */
-
-/*********************
- *      INCLUDES
- *********************/
-#include "lv_port_disp.h"
-#include <stdbool.h>
-#include <stdio.h>
-
+#include "display.h"
 #include "RTE_Components.h"
 #include CMSIS_device_header
 #include <RTE_Device.h>
 #include "Driver_CDC200.h" // Display driver
 
-#include "dave_cfg.h"
-#include "dave_d0lib.h"
-#include "dave_driver.h"
-#include "lv_draw_dave2d_utils.h"
-
-#define USE_EVT_GROUP
-
-#define USE_VSYNC
-
-#if (LV_USE_OS == LV_OS_FREERTOS) && defined(USE_EVT_GROUP)
 #include "FreeRTOS.h"
 #include "FreeRTOSConfig.h"
 #include "event_groups.h"
-#endif
 
-/*********************
- *      DEFINES
- *********************/
+#include "dave_driver.h"
+#include "dave_d0lib.h"
+
+#include "common_events.h"
+
+#define USE_EVT_GROUP
+#define USE_VSYNC
+
 #ifndef MY_DISP_HOR_RES
     // Replace the macro MY_DISP_HOR_RES with the actual screen width.
     #define MY_DISP_HOR_RES    (RTE_PANEL_HACTIVE_TIME)
@@ -49,7 +32,7 @@
 #error "The LV_COLOR_DEPTH and RTE_CDC200_PIXEL_FORMAT must match."
 #endif
 
-#if (LV_USE_OS == LV_OS_FREERTOS) && defined(USE_EVT_GROUP)
+#if defined(USE_EVT_GROUP)
 #define EVENT_DISP_BUFFER_READY     ( 1 << 0 )
 #define EVENT_DISP_BUFFER_CHANGED   ( 1 << 1 )
 #endif
@@ -59,36 +42,37 @@
 #define D1_HEAP_SIZE	0x80000
 #endif
 
+#if defined(USE_EVT_GROUP)
+static EventGroupHandle_t dispEventGroupHandle = NULL;
+#else
+static volatile bool disp_buf_ready = false;
+static volatile bool disp_buf_changed = false;
+#endif
+
 /**********************
  *      TYPEDEFS
  **********************/
 
 #pragma pack(1)
 #if RTE_CDC200_PIXEL_FORMAT == 0    // ARGB8888
-typedef lv_color32_t Pixel;
+typedef uint32_t Pixel;
 #elif RTE_CDC200_PIXEL_FORMAT == 1  // RGB888
-typedef lv_color_t Pixel;
+typedef uint32_t Pixel;
 #elif RTE_CDC200_PIXEL_FORMAT == 2  // RGB565
-typedef lv_color16_t Pixel;
+typedef uint16_t Pixel;
 #else
 #error "CDC200 Unsupported color format"
 #endif
 #pragma pack()
 
-/**********************
- *  STATIC PROTOTYPES
- **********************/
-static void disp_init(void);
+#define BUFFER_CLEAR_VAL        (0x000000)
+#define RED_COLOR_VAL           (0xFF0000)
+#define GREEN_COLOR_VAL         (0x00FF00)
+#define BLUE_COLOR_VAL          (0x0000FF)
+#define YELLOW_COLOR_VAL        (0xFFFF00)
+#define BLACK_COLO_VAL          (0xFFFFFF)
 
-static void disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map);
-
-static void disp_flush_wait(lv_display_t * disp);
-
-static void disp_callback(uint32_t event);
-
-/**********************
- *  STATIC VARIABLES
- **********************/
+#define LCD_BUF_NUM    (2)
 
 #if (D1_MEM_ALLOC == D1_MALLOC_D0LIB)
 static uint8_t __attribute__((section(".bss.at_sram1"))) d0_heap[D1_HEAP_SIZE];
@@ -104,77 +88,29 @@ static ARM_DRIVER_CDC200 *CDCdrv = &Driver_CDC200;
 
 static volatile bool disp_flush_enabled = true;
 
-#if (LV_USE_OS == LV_OS_FREERTOS) && defined(USE_EVT_GROUP)
-static EventGroupHandle_t dispEventGroupHandle = NULL;
-#else
-static volatile bool disp_buf_ready = false;
-static volatile bool disp_buf_changed = false;
-#endif
+static d2_device * d2_handle;
+static uint8_t * p_framebuffer = NULL;
 
-/**********************
- *      MACROS
- **********************/
+static uint8_t * g_p_single_buffer;
+static uint8_t * g_p_double_buffer;
 
-/**********************
- *   GLOBAL FUNCTIONS
- **********************/
+static void dave_init(void);
+static void disp_callback(uint32_t event);
+static void d2_start_rendering(void);
+static void d2_finish_rendering(void);
+static void d2_buf_switch(void);
+static void d2_buf_clear(void);
 
-void lv_port_disp_init(void)
-{
-    #if (LV_USE_OS == LV_OS_FREERTOS) && defined(USE_EVT_GROUP)
-    // Create event group to sync display states
-    dispEventGroupHandle = xEventGroupCreate();
-    #endif
-
-    /*-------------------------
-     * Initialize your display
-     * -----------------------*/
-    disp_init();
-
-    /*-------------------------
-     * Set display interrupt priority to FreeRTOS kernel level
-     * -----------------------*/
-    NVIC_SetPriority(CDC_SCANLINE0_IRQ_IRQn, configKERNEL_INTERRUPT_PRIORITY);
-
-#if (D1_MEM_ALLOC == D1_MALLOC_D0LIB)
-    /*-------------------------
-     * Initialize D/AVE D0 heap
-     * -----------------------*/
-    if (!d0_initheapmanager(d0_heap, sizeof(d0_heap), d0_mm_fixed_range,
-                            NULL, 0, 0, 0, d0_ma_unified))
-    {
-        printf("\r\nError: Heap manager initialization failed\n");
-        return;
-    }
-#endif
-
-    lv_init();
-
-    /*------------------------------------
-     * Create a display and set a flush_cb
-     * -----------------------------------*/
-    lv_display_t * disp = lv_display_create(MY_DISP_HOR_RES, MY_DISP_VER_RES);
-    lv_display_set_flush_cb(disp, disp_flush);
-    lv_display_set_flush_wait_cb(disp, disp_flush_wait);
-
-    /* Two buffers screen sized buffer for double buffering.
-     * Both LV_DISPLAY_RENDER_MODE_DIRECT and LV_DISPLAY_RENDER_MODE_FULL works, see their comments*/
-    lv_display_set_buffers(disp, lcd_buffer_1, lcd_buffer_2,
-                           sizeof(lcd_buffer_1),
-                           LV_DISPLAY_RENDER_MODE_DIRECT);
-}
-
-/**********************
- *   STATIC FUNCTIONS
- **********************/
-
-/*Initialize your display and the required peripherals.*/
-static void disp_init(void)
+/**
+ * @brief 
+ * 
+ */
+void display_init(void)
 {
     /* Initialize CDC driver */
     int ret = CDCdrv->Initialize(disp_callback);
     if(ret != ARM_DRIVER_OK){
-        printf("\r\n Error: CDC init failed\n");
+        //printf("\r\n Error: CDC init failed\n");
         __BKPT(0);
         return;
     }
@@ -182,7 +118,7 @@ static void disp_init(void)
     /* Power control CDC */
     ret = CDCdrv->PowerControl(ARM_POWER_FULL);
     if(ret != ARM_DRIVER_OK){
-        printf("\r\n Error: CDC Power up failed\n");
+        //printf("\r\n Error: CDC Power up failed\n");
         __BKPT(0);
         return;
     }
@@ -190,7 +126,7 @@ static void disp_init(void)
     /* configure CDC controller */
     ret = CDCdrv->Control(CDC200_CONFIGURE_DISPLAY, (uint32_t)lcd_buffer_1);
     if(ret != ARM_DRIVER_OK){
-        printf("\r\n Error: CDC controller configuration failed\n");
+        //printf("\r\n Error: CDC controller configuration failed\n");
         __BKPT(0);
         return;
     }
@@ -198,7 +134,7 @@ static void disp_init(void)
     /* Enable CDC SCANLINE0 event */
     ret = CDCdrv->Control(CDC200_SCANLINE0_EVENT, ENABLE);
     if(ret != ARM_DRIVER_OK){
-        printf("\r\n Error: CDC200_SCANLINE0_EVENT enable failed\n");
+        //printf("\r\n Error: CDC200_SCANLINE0_EVENT enable failed\n");
         __BKPT(0);
         return;
     }
@@ -206,33 +142,21 @@ static void disp_init(void)
     /* Start CDC */
     ret = CDCdrv->Start();
     if(ret != ARM_DRIVER_OK){
-        printf("\r\n Error: CDC Start failed\n");
+        //printf("\r\n Error: CDC Start failed\n");
         __BKPT(0);
         return;
     }
-}
 
-/* Enable updating the screen (the flushing process) when disp_flush() is called by LVGL
- */
-void disp_enable_update(void)
-{
-    disp_flush_enabled = true;
-}
-
-/* Disable updating the screen (the flushing process) when disp_flush() is called by LVGL
- */
-void disp_disable_update(void)
-{
-    disp_flush_enabled = false;
+    dave_init();
 }
 
 /*Flush the content of the internal buffer the specific area on the display.
  *`px_map` contains the rendered image as raw pixel map and it should be copied to `area` on the display.
  *You can use DMA or any hardware acceleration to do this operation in the background but
  *'lv_display_flush_ready()' has to be called when it's finished.*/
-static void disp_flush(lv_display_t * disp_drv, const lv_area_t * area, uint8_t * px_map)
+static void disp_flush(uint8_t * px_map)
 {
-    if (disp_flush_enabled && lv_disp_flush_is_last(disp_drv)) {
+    if (disp_flush_enabled ) {
         d2_finish_rendering();
 
         //uint32_t size = lv_area_get_width(area) * lv_area_get_height(area)
@@ -240,7 +164,7 @@ static void disp_flush(lv_display_t * disp_drv, const lv_area_t * area, uint8_t 
         //SCB_CleanInvalidateDCache_by_Addr(px_map, size);
 
 #ifdef USE_VSYNC
-        #if (LV_USE_OS == LV_OS_FREERTOS) && defined(USE_EVT_GROUP)
+        #if defined(USE_EVT_GROUP)
         xEventGroupClearBits(dispEventGroupHandle, EVENT_DISP_BUFFER_READY);
         #else
         disp_buf_ready = false;
@@ -248,7 +172,7 @@ static void disp_flush(lv_display_t * disp_drv, const lv_area_t * area, uint8_t 
 
         CDCdrv->Control(CDC200_FRAMEBUF_UPDATE_VSYNC, (uint32_t)px_map);
 
-        #if (LV_USE_OS == LV_OS_FREERTOS) && defined(USE_EVT_GROUP)
+        #if defined(USE_EVT_GROUP)
         xEventGroupSetBits(dispEventGroupHandle, EVENT_DISP_BUFFER_CHANGED);
         #else
         disp_buf_changed = true;
@@ -261,10 +185,10 @@ static void disp_flush(lv_display_t * disp_drv, const lv_area_t * area, uint8_t 
 
 /* Display buffer flush waiting callback
  */
-static void disp_flush_wait(lv_display_t * disp)
+static void disp_flush_wait(void)
 {
 #ifdef USE_VSYNC
-    #if (LV_USE_OS == LV_OS_FREERTOS) && defined(USE_EVT_GROUP)
+    #if defined(USE_EVT_GROUP)
     xEventGroupWaitBits(dispEventGroupHandle, EVENT_DISP_BUFFER_READY,
                         pdFALSE, pdFALSE, (100/portTICK_PERIOD_MS));
     #else
@@ -279,7 +203,14 @@ static void disp_flush_wait(lv_display_t * disp)
 static void disp_callback(uint32_t event)
 {
     if (event & ARM_CDC_SCANLINE0_EVENT) {
-        #if (LV_USE_OS == LV_OS_FREERTOS) && defined(USE_EVT_GROUP)
+        BaseType_t context_switch = pdFALSE;
+
+        xEventGroupSetBitsFromISR(
+                display_event_group,
+                EVENT_VSYNC,
+                &context_switch);
+        portYIELD_FROM_ISR(context_switch);
+#if 0
         if (xEventGroupGetBitsFromISR(dispEventGroupHandle)
            & EVENT_DISP_BUFFER_CHANGED) {
             xEventGroupClearBitsFromISR(
@@ -293,17 +224,90 @@ static void disp_callback(uint32_t event)
                 &context_switch);
             portYIELD_FROM_ISR(context_switch);
         }
-        #else
-        if (disp_buf_changed) {
-            disp_buf_changed = false;
-            disp_buf_ready = true;
-        }
-        #endif
+#endif
     }
 
     if (event & ARM_CDC_DSI_ERROR_EVENT) {
         // Transfer Error: Received Hardware error.
-        __BKPT(0);
+        //__BKPT(0);
     }
+    
 }
 
+static void dave_init(void)
+{
+    #if defined(USE_EVT_GROUP)
+    // Create event group to sync display states
+    dispEventGroupHandle = xEventGroupCreate();
+    #endif
+    
+    /*-------------------------
+     * Set display interrupt priority to FreeRTOS kernel level
+     * -----------------------*/
+    NVIC_SetPriority(CDC_SCANLINE0_IRQ_IRQn, configKERNEL_INTERRUPT_PRIORITY);
+
+#if (D1_MEM_ALLOC == D1_MALLOC_D0LIB)
+    /*-------------------------
+     * Initialize D/AVE D0 heap
+     * -----------------------*/
+    if (!d0_initheapmanager(d0_heap, sizeof(d0_heap), d0_mm_fixed_range,
+                            NULL, 0, 0, 0, d0_ma_unified))
+    {
+        //printf("\r\nError: Heap manager initialization failed\n");
+        return;
+    }
+#endif
+
+    /* Initialize D/AVE 2D driver */
+    d2_handle = d2_opendevice(0);
+    d2_inithw(d2_handle, 0);
+
+#if 1
+    /* Clear both buffers */
+    d2_framebuffer(d2_handle, lcd_buffer_1, MY_DISP_VER_RES, MY_DISP_HOR_RES, MY_DISP_VER_RES * LCD_BUF_NUM, d2_mode_rgb565);
+    d2_clear(d2_handle, BLUE_COLOR_VAL);
+
+    /* Process active displaylist to clear framebuffers */
+    d2_startframe(d2_handle);
+    //d2_flushframe(d2_handle);
+    d2_endframe(d2_handle);
+#endif
+
+    /* Set various D2 parameters */
+    d2_setcolor(d2_handle, 0, 0xffffff );   // set white
+    d2_setblendmode(d2_handle, d2_bm_alpha, d2_bm_one_minus_alpha);
+    d2_setalphamode(d2_handle, d2_am_constant);
+    d2_setalpha(d2_handle, 0xff);
+    d2_setantialiasing(d2_handle, 1);
+    d2_setlinecap(d2_handle, d2_lc_butt);
+    d2_setlinejoin(d2_handle, d2_lj_none);
+}
+
+
+static void d2_start_rendering(void)
+{
+    // Wait for previous rendering to finish
+    d2_endframe(d2_handle);
+
+    // Switch and clear buf
+    d2_buf_switch();
+    d2_buf_clear();
+
+    // Execute the next render buffer
+    d2_startframe(d2_handle);
+}
+
+static void d2_finish_rendering(void)
+{
+    d2_endframe(d2_handle);
+}
+
+static void d2_buf_switch(void)
+{
+    //_d2_buf_act = _d2_buf_act == &_d2_buf_1 ? &_d2_buf_2 : &_d2_buf_1;
+}
+
+static void d2_buf_clear(void)
+{
+    //_lv_ll_clear_custom(_d2_buf_act, d2_buf_clear_cb);
+}

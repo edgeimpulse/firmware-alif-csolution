@@ -17,9 +17,9 @@
 #ifndef __1_dave_cfg_h_H
 #define __1_dave_cfg_h_H
 
-#if defined(_RTE_)
-    #include "RTE_Components.h"
-#endif
+
+#include "RTE_Components.h"
+#include CMSIS_device_header
 
 // Memory allocation options
 #define D1_MALLOC_D0LIB     0

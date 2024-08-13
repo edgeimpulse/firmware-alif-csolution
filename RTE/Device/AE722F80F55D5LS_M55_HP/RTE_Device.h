@@ -1120,6 +1120,8 @@
 // <e> CDC200 (cdc200) [Driver_CDC200]
 // <i> Configuration settings for Driver_CDC200 in component ::Drivers:CDC200
 #define RTE_CDC200 1
+// FIXME: Modied AlifSemiconductor::Device:SOC Peripherals:CDC:1.1.1 */
+#define RTE_Drivers_CDC200 1   /* Driver CDC200*/
 
 #if RTE_CDC200
 

@@ -21,12 +21,14 @@
 #include "event_groups.h"
 #include "task.h"
 #include "ei_main.h"
+#include "display_task.h"
 #include "peripheral/peripheral.h"
 #include "npu/npu_handler.h"
 #include <cstdio>
 #include "board.h"
 
 EventGroupHandle_t common_event_group;
+EventGroupHandle_t display_event_group;
 
 uint8_t ucHeap[ configTOTAL_HEAP_SIZE ] __attribute__((aligned(32), section(".heap")));
 
@@ -48,8 +50,10 @@ int main (void)
     setvbuf(stdout, NULL, _IONBF, 0);
 
     ei_main_start();
+    display_task_start();
 
     common_event_group = xEventGroupCreate();
+    display_event_group = xEventGroupCreate();
 
     // Start thread execution
     vTaskStartScheduler();

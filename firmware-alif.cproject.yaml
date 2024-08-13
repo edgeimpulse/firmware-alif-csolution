@@ -46,7 +46,12 @@ project:
         - file: app/peripheral/camera/bayer2rgb.c
         - file: app/peripheral/inertial/bmi323_icm42670.c
         - file: app/peripheral/inertial/i2c_over_i3c.c
-        - file: app/lv_port/lv_port_disp.c
+        #- file: app/lv_port/lv_port_disp.c
+    - group: Display
+      files:
+        - file: app/display_task.cpp
+        - file: app/peripheral/display/graphic.c
+        - file: app/peripheral/display/display.c
     - group: Npu
       files:
         - file: app/npu/npu_handler.cpp
@@ -71,7 +76,7 @@ project:
   add-path:
     - ./
     - app/
-    - app/lv_port/
+    #- app/lv_port/
     - app/edge-impulse    
     - app/edge-impulse/ingestion-sdk-platform/sensor
     - app/edge-impulse/ingestion-sdk-c
@@ -99,9 +104,6 @@ project:
     - AXI_LIMIT3_MEM_TYPE: 3
     - TF_LITE_STATIC_MEMORY
 
-  #packs:
-  #  - pack: AlifSemiconductor::Ensemble@1.1.1
-
   components:
     # needed for Alif Ensemble support    
     # Arm CMSIS components
@@ -125,7 +127,7 @@ project:
     # peripheral drivers & middleware, uncomment as needed
     # - component: AlifSemiconductor::Device:SOC Peripherals:ADC
     # - component: AlifSemiconductor::Device:SOC Peripherals:CAN-FD
-    - component: AlifSemiconductor::Device:SOC Peripherals:CDC
+    # - component: AlifSemiconductor::Device:SOC Peripherals:CDC
     - component: AlifSemiconductor::Device:SOC Peripherals:CPI
     # - component: AlifSemiconductor::Device:SOC Peripherals:CRC
     # - component: AlifSemiconductor::Device:SOC Peripherals:DAC
@@ -170,11 +172,11 @@ project:
     # - component: AlifSemiconductor::BSP:External peripherals:OSPI Flash ISSI
 
         # LVGL v9.1
-    - component: LVGL::LVGL&LVGL9:Essential
-    - component: LVGL::LVGL&LVGL9:OS Abstraction Layer&FreeRTOS
-    - component: LVGL::LVGL&LVGL9:Demos:Assets
-    - component: LVGL::LVGL&LVGL9:Demos:Widgets
-    - component: LVGL::LVGL&LVGL9:Demos:Benchmark
+    #- component: LVGL::LVGL&LVGL9:Essential
+    #- component: LVGL::LVGL&LVGL9:OS Abstraction Layer&FreeRTOS
+    #- component: LVGL::LVGL&LVGL9:Demos:Assets
+    #- component: LVGL::LVGL&LVGL9:Demos:Widgets
+    #- component: LVGL::LVGL&LVGL9:Demos:Benchmark
 
     # D/AVE2D driver
     - component: AlifSemiconductor::Graphics:DAVE2D:Layer2
@@ -182,7 +184,7 @@ project:
     - component: AlifSemiconductor::Graphics:DAVE2D:Layer0Lib
 
     # LVGL D/AVE2D support
-    - component: AlifSemiconductor::Graphics:Acceleration:GPU AlifSemi-Dave2D
+    #- component: AlifSemiconductor::Graphics:Acceleration:GPU AlifSemi-Dave2D
     
   layers:
     - layer: ./model/model.clayer.yml

@@ -126,6 +126,7 @@ SECTIONS
   .bss.at_sram0 (NOLOAD) : ALIGN(8)
   {    
     * (.tensor_arena_buf)
+    * (.bss.device_info)
   } > SRAM0
 
   .bss.at_sram1 (NOLOAD) : ALIGN(8)
@@ -134,7 +135,6 @@ SECTIONS
     * (.bss.lcd_frame_buf)                 /* LCD frame Buffer. */
     * (.bss.camera_frame_buf)              /* Camer Frame Buffer */
     * (.bss.camera_frame_bayer_to_rgb_buf) /* (Optional) Camera Frame Buffer for Bayer to RGB Conversion. */
-    * (.bss.device_info)
   } > SRAM1
 
   .bss.itcm (NOLOAD) : ALIGN(8)

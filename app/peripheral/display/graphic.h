@@ -14,19 +14,30 @@
  *
  */
 
-#ifndef COMMON_EVENTS_H_
-#define COMMON_EVENTS_H_
+#ifndef _GRAPHIC_H_
+#define _GRAPHIC_H_
 
-#include "FreeRTOS.h"
-#include "event_groups.h"
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
-extern EventGroupHandle_t common_event_group;
-extern EventGroupHandle_t display_event_group;
+typedef enum {
+    e_snapshot_idle,
+    e_snapshot_stream,
+    e_snapshot_ingestion,
+    e_snapshot_lcd,
+    e_snapshot_lcd_inference,
+    e_snapshot_inference,
+} t_snapshot_state;
 
-#define EVENT_RX_READY                  (1 << 0)
-#define EVENT_TX_DONE                   (1 << 1)
-#define EVENT_TX_EMPTY                  (1 << 2)
 
-#define EVENT_VSYNC                     (1 << 0)
 
-#endif /* COMMON_EVENTS_H_ */
+extern t_snapshot_state snapshot_get(void);
+extern void snapshot_set(t_snapshot_state state);
+extern void snapshot_handler(void);
+
+#if defined(__cplusplus)
+}
+#endif
+
+#endif
