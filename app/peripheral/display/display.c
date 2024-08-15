@@ -78,9 +78,9 @@ typedef uint16_t Pixel;
 static uint8_t __attribute__((section(".bss.at_sram1"))) d0_heap[D1_HEAP_SIZE];
 #endif
 
-static Pixel lcd_buffer_1[MY_DISP_VER_RES][MY_DISP_HOR_RES]
+static uint8_t lcd_buffer_1[MY_DISP_VER_RES * MY_DISP_HOR_RES * 2]
             __attribute__((section(".bss.lcd_frame_buf"))) = {0};
-static Pixel lcd_buffer_2[MY_DISP_VER_RES][MY_DISP_HOR_RES]
+static uint8_t lcd_buffer_2[MY_DISP_VER_RES * MY_DISP_HOR_RES * 2]
             __attribute__((section(".bss.lcd_frame_buf"))) = {0};
 
 extern ARM_DRIVER_CDC200 Driver_CDC200;
@@ -91,8 +91,8 @@ static volatile bool disp_flush_enabled = true;
 static d2_device * d2_handle;
 static uint8_t * p_framebuffer = NULL;
 
-static uint8_t * g_p_single_buffer;
-static uint8_t * g_p_double_buffer;
+static const uint8_t *p_buf1 = lcd_buffer_1;
+static const uint8_t *p_buf2 = lcd_buffer_2;
 
 static void dave_init(void);
 static void disp_callback(uint32_t event);
@@ -146,6 +146,8 @@ void display_init(void)
         __BKPT(0);
         return;
     }
+
+    p_framebuffer = lcd_buffer_1;
 
     dave_init();
 }
@@ -310,4 +312,54 @@ static void d2_buf_switch(void)
 static void d2_buf_clear(void)
 {
     //_lv_ll_clear_custom(_d2_buf_act, d2_buf_clear_cb);
+}
+
+ void display_swap_buffer(void)
+{
+    /* Swap the active framebuffer */
+    p_framebuffer = (p_framebuffer == p_buf1) ? p_buf2 : p_buf1;
+}
+
+ void display_change_buffer(void)
+{
+    // ?
+}
+
+ void graphic_display_draw(void)
+{
+    if (p_framebuffer == NULL) {
+        return;
+    }
+}
+
+void graphic_start_buffer(void)
+{
+    /* Start a new display list */
+    d2_startframe(d2_handle);
+
+    /* Set the new buffer to the current draw buffer */
+    d2_framebuffer(d2_handle, (void *)p_framebuffer, MY_DISP_VER_RES, MY_DISP_HOR_RES, MY_DISP_VER_RES, d2_mode_rgb565);
+
+    /* Clear the frame buffer */
+    d2_clear(d2_handle, BUFFER_CLEAR_VAL);
+}
+
+ void graphic_end_frame(void)
+{
+    /* Wait for previous frame rendering to finish, then finalize this frame and flip the buffers */
+    d2_flushframe(d2_handle);
+
+    /* End the current display list */
+    d2_endframe(d2_handle);
+
+    /* Flip the framebuffer */
+    //display_swap_buffer();
+
+    /* Clean data cache */
+    SCB_CleanDCache();
+}
+
+ uint8_t* graphic_get_draw_buffer(void)
+{
+
 }

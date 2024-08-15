@@ -65,7 +65,21 @@ static void display_task(void *pvParameters)
                                 portMAX_DELAY);
 
         if (event_bit & EVENT_VSYNC) {
+            /* prepare frame buffer */
+            graphic_start_buffer();
 
+            // update
+            graphic_display_draw();
+
+            /* end of graphic operation */
+            graphic_end_frame();
+
+
+            /* Swap the active framebuffer */
+            display_swap_buffer();
+
+            /* Now that the framebuffer is ready, update the GLCDC buffer pointer on the next Vsync */
+            display_change_buffer();
         }
 #if 0
         // wait vsync
