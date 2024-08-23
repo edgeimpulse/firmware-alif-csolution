@@ -36,6 +36,7 @@ public:
     void get_resolutions(ei_device_snapshot_resolutions_t **res, uint8_t *res_num) override;
     bool set_resolution(const ei_device_snapshot_resolutions_t res) override;
     ei_device_snapshot_resolutions_t get_min_resolution(void) override;
+    ei_device_snapshot_resolutions_t search_resolution(uint32_t required_width, uint32_t required_height) override;
 
     bool ei_camera_capture_rgb888_packed_big_endian(
         uint8_t *image,

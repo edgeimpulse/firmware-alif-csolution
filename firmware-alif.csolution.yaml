@@ -11,6 +11,8 @@ solution:
       define:
         - "CORE_M55_HE"
         - "EI_CONFIG_ETHOS_U55_128"
+        - "EI_CLASSIFIER_ALLOCATION_STATIC"
+        - EI_TENSOR_ARENA_LOCATION: ".tensor_arena_buf"
     - device: Alif Semiconductor::AE722F80F55D5LS:M55_HP
       type: HP
       compiler: GCC
@@ -18,6 +20,15 @@ solution:
       define:
         - "CORE_M55_HP"
         - "EI_CONFIG_ETHOS_U55_256"
+    - device: Alif Semiconductor::AE722F80F55D5LS:M55_HP
+      type: HP_SRAM
+      compiler: GCC
+      #debug: "on"
+      define:
+        - "CORE_M55_HP"
+        - "EI_CONFIG_ETHOS_U55_256"
+        - "EI_CLASSIFIER_ALLOCATION_STATIC"
+        - EI_TENSOR_ARENA_LOCATION: ".tensor_arena_buf"
 
   define:
     - UNICODE
@@ -35,8 +46,8 @@ solution:
     #  debug: off
 
   packs:
-    - pack: AlifSemiconductor::Ensemble@1.1.1
-    - pack: ARM::CMSIS@5.9.0
+    - pack: AlifSemiconductor::Ensemble@1.2.0
+    - pack: ARM::CMSIS@6.0.0
     - pack: ARM::CMSIS-DSP@1.15.0
     - pack: ARM::CMSIS-NN@4.1.0
     - pack: EdgeImpulse::EI-SDK

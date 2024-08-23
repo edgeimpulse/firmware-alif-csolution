@@ -27,15 +27,15 @@
  * limitations under the License.
  */
 
-__STACK_SIZE    = 0x00008000;
-__HEAP_SIZE     = 0x00010000;
+__STACK_SIZE    = 0x00002000;
+__HEAP_SIZE     = 0x00030000;
 __ROM_BASE      = 0x80000000;
 __ROM_SIZE      = 0x0057F000;
 
 MEMORY
 {
   ITCM  (rwx) : ORIGIN = 0x00000000, LENGTH = 0x00040000
-  DTCM  (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00100000
+  DTCM  (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00040000
   SRAM0 (rwx) : ORIGIN = 0x02000000, LENGTH = 0x00400000
   SRAM1 (rwx) : ORIGIN = 0x08000000, LENGTH = 0x00280000
   MRAM  (rx)  : ORIGIN = __ROM_BASE, LENGTH = __ROM_SIZE
@@ -60,22 +60,27 @@ SECTIONS
     *ei_at_handlers.cpp.obj(.text .rodata*)
     *ei_device_alif_e7.cpp.obj(.text .rodata*)
 
-    *lv_*.c.obj(.text .rodata*)
+    *lv_*.c.obj(.text .rodata*)    
 
     *libg.a:*printf*(.text* .rodata*)
     *libstdc++.a:cp-demangle.o(.text* .rodata*)
     *CMSIS*.obj(.text .rodata*)
     *flatbuffer*.obj(.text .rodata*)
-
+    
     *(startup_ro_data)
   } > MRAM
 
   .copy.table : ALIGN(4)
   {
     __copy_table_start__ = .;
+    LONG ( LOADADDR(.data.at_sram0) )
+    LONG ( ADDR(.data.at_sram0) )
+    LONG ( SIZEOF(.data.at_sram0)/4 )
+
     LONG ( LOADADDR(.data.at_dtcm) )
     LONG ( ADDR(.data.at_dtcm) )
     LONG ( SIZEOF(.data.at_dtcm)/4 )
+    
     LONG ( LOADADDR(.code.at_itcm) )
     LONG ( ADDR(.code.at_itcm) )
     LONG ( SIZEOF(.code.at_itcm)/4 )
@@ -104,13 +109,18 @@ SECTIONS
     *(.text*)    
   } > ITCM AT > MRAM
 
+  .data.at_sram0 : ALIGN(8)
+  {
+    *arm_common_tables.c.obj(.data* .rodata*)
+    *CommonTables.c.obj(.data*)
+  } > SRAM0 AT> MRAM
+
   .data.at_dtcm : ALIGN(8)
   {
     /* DTCM has all read-write data, including NPU activation buffer and audio processing buffers */
     *(vtable)
     *(.data)
     *(.data*)
-    *arm_common_tables.c.obj(.data* .rodata*)
 
     KEEP(*(.jcr*))
 
@@ -125,8 +135,12 @@ SECTIONS
 
   .bss.at_sram0 (NOLOAD) : ALIGN(8)
   {
+    *arm_common_tables.c.obj(.bss.*)
+    *CommonTables.c.obj(.bss.*)
     * (.bss.lcd_crop_and_interpolate_buf)  /* LCD crop and intrepolate image processing buffer. */
     * (.bss.lcd_frame_buf)                 /* LCD frame Buffer. */
+    * (.tensor_arena_buf)
+    * (.bss.device_info)
   } > SRAM0
 
   .bss.at_sram1 (NOLOAD) : ALIGN(8)

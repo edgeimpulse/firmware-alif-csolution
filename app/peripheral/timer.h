@@ -18,6 +18,7 @@
 #define _TIMER_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -25,6 +26,10 @@ extern "C" {
 
 extern int timer_us_init(void);
 extern uint32_t timer_get_us(void);
+
+extern int timer_sensor_start(uint32_t period_ms);
+extern void timer_sensor_stop(void);
+extern bool timer_sensor_get(void);
 
 #if defined(__cplusplus)
 }

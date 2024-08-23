@@ -20,6 +20,12 @@
 #include "ei_utils.h"
 #include "peripheral/ei_uart.h"
 #include "ingestion-sdk-platform/sensor/ei_microphone.h"
+#include "peripheral/timer.h"
+#include "se_services_port.h"
+
+/* Private variables ------------------------------------------------------- */
+
+extern uint32_t        se_services_s_handle;
 
 /** Data Output Baudrate */
 const ei_device_data_output_baudrate_t ei_dev_max_data_output_baudrate = {
@@ -39,15 +45,22 @@ EiDeviceAlif::EiDeviceAlif(EiDeviceMemory* mem)
     init_device_id();
     load_config();
 
-    device_type = "ALIF_E7_APPKIT_GEN2";
-
-#if defined (MIC_ENABLED)
-    /* Init standalone sensor */
-    sensors[0].name = "Microphone";
-    sensors[0].frequencies[0] = 16000;
-    sensors[0].max_sample_length_s = 2;
-    sensors[0].start_sampling_cb = ei_microphone_sample_record;
+#if defined (CORE_M55_HE)
+    device_type = "ALIF_E7_APPKIT_GEN2_HE";
+#else
+    device_type = "ALIF_E7_APPKIT_GEN2_HP";
 #endif
+
+    /* Init standalone sensor */
+    sensors[MICROPHONE].name = "Microphone";
+    sensors[MICROPHONE].frequencies[0] = 16000;
+    sensors[MICROPHONE].max_sample_length_s = 10;
+    sensors[MICROPHONE].start_sampling_cb = ei_microphone_sample_start_mono;
+
+    sensors[MICROPHONE_2CH].name = "Microphone 2 channels";
+    sensors[MICROPHONE_2CH].frequencies[0] = 16000;
+    sensors[MICROPHONE_2CH].max_sample_length_s = 5;
+    sensors[MICROPHONE_2CH].start_sampling_cb = ei_microphone_sample_start_stereo;
 
     /* Init camera instance */
     cam = static_cast<EiAlifCamera*>(EiCamera::get_camera());
@@ -63,7 +76,27 @@ EiDeviceAlif::~EiDeviceAlif()
  */
 void EiDeviceAlif::init_device_id(void)
 {
-    // TODO read id
+    char temp[20];
+    
+    uint64_t id = 0;
+    uint32_t error_code = SERVICES_REQ_SUCCESS;
+    uint32_t service_error_code;
+
+    uint8_t eui[5] = {0x04, 0x03, 0x02, 0x01, 0x00};
+
+    SERVICES_system_get_eui_extension(se_services_s_handle, false, eui, &service_error_code);
+
+#if defined (CORE_M55_HE)
+    eui[0] = eui[0] ^ 0x01; // to differentiate between HE and HP
+#endif
+
+    snprintf(temp, sizeof(temp), "%02x:%02x:%02x:%02x:%02x",
+        eui[4],
+        eui[3],
+        eui[2],
+        eui[1],
+        eui[0]);
+    device_id = std::string(temp);
 }
 
 /**
@@ -126,8 +159,113 @@ bool EiDeviceAlif::get_sensor_list(const ei_device_sensor_t **p_sensor_list, siz
  */
 EiDeviceInfo* EiDeviceInfo::get_device(void)
 {
-    static EiDeviceRAM<1024, 32> memory(sizeof(EiConfig));
+    __attribute__((aligned(32), section(".bss.device_info")))  static EiDeviceRAM<262144, 4> memory(sizeof(EiConfig));
     static EiDeviceAlif dev(&memory);
 
     return &dev;
 }
+
+bool EiDeviceAlif::start_sample_thread(void (*sample_read_cb)(void), float sample_interval_ms)
+{
+    this->is_sampling = true;
+    this->sample_read_callback = sample_read_cb;
+    this->sample_interval_ms = sample_interval_ms;
+
+#if MULTI_FREQ_ENABLED == 1
+    this->actual_timer = 0;
+    this->fusioning = 1;        //
+#endif
+    
+    timer_sensor_start(this->sample_interval_ms);
+
+    return true;
+}
+
+bool EiDeviceAlif::stop_sample_thread(void)
+{
+    timer_sensor_stop();
+
+    this->set_state(eiStateIdle);
+    this->is_sampling = false;
+
+    return true;
+}
+
+void EiDeviceAlif::sample_thread(void)
+{       
+#if MULTI_FREQ_ENABLED == 1
+    if (this->fusioning == 1) {
+        if (timer_sensor_get() == true)
+        {
+            if (this->sample_read_callback != nullptr) {
+                this->sample_read_callback();
+            }
+        }
+    }
+    else {
+        uint8_t flag = 0;
+        uint8_t i = 0;
+
+        this->actual_timer += (uint32_t)this->sample_interval;
+
+        if (timer_sensor_get() == true) {
+
+            for (i = 0; i < this->fusioning; i++) {
+                if (((uint32_t)(this->actual_timer % (uint32_t)this->multi_sample_interval[i])) == 0) {
+                    flag |= (1<<i);
+                }
+            }
+
+            if (this->sample_multi_read_callback != nullptr) {
+                this->sample_multi_read_callback(flag);
+            }
+        }
+    }
+#else
+    if (timer_sensor_get() == true)
+    {
+        if (this->sample_read_callback != nullptr) {
+            this->sample_read_callback();
+        }
+    }
+
+#endif
+}
+
+#if MULTI_FREQ_ENABLED == 1
+/**
+ *
+ * @param sample_read_cb
+ * @param multi_sample_interval_ms
+ * @param num_fusioned
+ * @return
+ */
+bool EiDeviceAlif::start_multi_sample_thread(void (*sample_multi_read_cb)(uint8_t), float* multi_sample_interval_ms, uint8_t num_fusioned)
+{
+    uint8_t i;
+    uint8_t flag = 0;
+
+    this->is_sampling = true;
+    this->sample_multi_read_callback = sample_multi_read_cb;
+    this->fusioning = num_fusioned;
+
+    this->multi_sample_interval.clear();
+
+    for (i = 0; i < num_fusioned; i++) {
+        this->multi_sample_interval.push_back(1.f/multi_sample_interval_ms[i]*1000.f);
+    }
+
+    this->sample_interval = ei_fusion_calc_multi_gcd(this->multi_sample_interval.data(), this->fusioning);
+
+    /* force first reading */
+    for (i = 0; i < this->fusioning; i++) {
+            flag |= (1<<i);
+    }
+    this->sample_multi_read_callback(flag);
+
+    this->actual_timer = 0;
+    timer_sensor_start((uint32_t)this->sample_interval);
+
+    return true;
+}
+#endif

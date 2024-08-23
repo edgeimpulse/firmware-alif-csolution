@@ -22,14 +22,18 @@
 typedef int16_t microphone_sample_t;
 
 extern int ei_microphone_init(void);
-extern bool ei_microphone_sample_record(void);
-extern int ei_microphone_inference_get_data(size_t offset, size_t length, float *out_ptr);
-extern bool ei_microphone_inference_start(uint32_t n_samples, float interval_ms);
+extern bool ei_microphone_sample_start_mono(void);
+extern bool ei_microphone_sample_start_stereo(void);
+
+extern bool ei_microphone_start_inference_recording(void);
+extern bool ei_microphone_inference_start(uint32_t n_samples, uint8_t n_channels_inference, uint32_t freq);
 extern bool ei_microphone_inference_record_continuous(void);
 extern bool ei_microphone_inference_record(void);
 extern bool ei_microphone_inference_is_recording(void);
 extern void ei_microphone_inference_reset_buffers(void);
 extern bool ei_microphone_inference_end(void);
 extern int ei_microphone_audio_signal_get_data(size_t offset, size_t length, float *out_ptr);
+extern void ei_mic_thread(void (*callback)(void *buffer, uint32_t n_bytes));
+extern void ei_mic_inference_samples_callback(void *buffer, uint32_t sample_count);
 
 #endif
