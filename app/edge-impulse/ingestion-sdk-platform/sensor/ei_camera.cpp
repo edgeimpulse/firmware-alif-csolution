@@ -27,8 +27,21 @@ ei_device_snapshot_resolutions_t EiAlifCamera::resolutions[] = {
         {240, 240},
 #if defined (CORE_M55_HP)
         {320, 240},
+    #if (RTE_MT9M114_CAMERA_SENSOR_MIPI_IMAGE_CONFIG == 5)
+            {320, 320},
+    #elif (RTE_MT9M114_CAMERA_SENSOR_MIPI_IMAGE_CONFIG == 3)
+        {320, 320},
+        {640, 480},
+    #elif (RTE_MT9M114_CAMERA_SENSOR_MIPI_IMAGE_CONFIG == 2)
+        {320, 320},
+        {640, 480},
+        {1280, 720},
+    #endif
 #endif
-    };
+
+};
+
+static uint8_t snapshot_buffer[CAM_FRAME_SIZE * 2 * 3] __attribute__((aligned(32), section(".bss.snapshot_buffer")));
 
 /**
  * @brief 
@@ -41,6 +54,7 @@ ei_device_snapshot_resolutions_t EiAlifCamera::resolutions[] = {
 bool EiAlifCamera::init(uint16_t width, uint16_t height)
 {
     if (camera_init() != 0) {
+        ei_printf("Failed to init camera\r\n");
         return false;
     }
 
@@ -99,8 +113,8 @@ bool EiAlifCamera::ei_camera_capture_rgb888_packed_big_endian(
 
 bool EiAlifCamera::get_fb_ptr(uint8_t** fb_ptr)
 {
-    // Not implemented
-    return false;
+    *fb_ptr = snapshot_buffer;
+    return true;
 }
 
 /**
@@ -128,7 +142,7 @@ ei_device_snapshot_resolutions_t EiAlifCamera::search_resolution(uint32_t requir
 
     camera_get_max_res(&max_width, &max_height);
 
-    if ((required_width < max_width) && (required_height < max_height)) {
+    if ((required_width <= max_width) && (required_height <= max_height)) {
         res.height = required_height;
         res.width = required_width;
     }

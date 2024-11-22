@@ -21,27 +21,22 @@
 #include "bayer.h"
 #include "image_processing.h"
 
+
 #define BAYER_FORMAT DC1394_COLOR_FILTER_GRBG
 
 /* Camera Controller Resolution. */
 #if RTE_Drivers_CAMERA_SENSOR_MT9M114
-#define CAM_FRAME_WIDTH        (RTE_MT9M114_CAMERA_SENSOR_MIPI_FRAME_WIDTH)
-#define CAM_FRAME_HEIGHT       (RTE_MT9M114_CAMERA_SENSOR_MIPI_FRAME_HEIGHT)
+
 #define CAM_COLOR_CORRECTION   (0)
-#define CAM_USE_RGB565         (RTE_MT9M114_CAMERA_SENSOR_MIPI_CSI_DATA_TYPE == 0x22)
+#define CAM_USE_RGB565         (1)
 #define RGB_BUFFER_SECTION     ".bss.camera_frame_bayer_to_rgb_buf_at_sram0"
+
 #elif RTE_Drivers_CAMERA_SENSOR_ARX3A0
-#define CAM_FRAME_WIDTH        (RTE_ARX3A0_CAMERA_SENSOR_FRAME_WIDTH)
-#define CAM_FRAME_HEIGHT       (RTE_ARX3A0_CAMERA_SENSOR_FRAME_HEIGHT)
+
 #define CAM_COLOR_CORRECTION   (1)
 #define CAM_USE_RGB565         (0)
 #define RGB_BUFFER_SECTION     ".bss.camera_frame_bayer_to_rgb_buf"
 #endif
-
-#define CAM_BYTES_PER_PIXEL 
-#define CAM_FRAME_SIZE (CAM_FRAME_WIDTH * CAM_FRAME_HEIGHT)
-#define CAM_MPIX (CAM_FRAME_SIZE / 1000000.0f)
-#define CAM_FRAME_SIZE_BYTES (CAM_FRAME_SIZE + CAM_USE_RGB565 * CAM_FRAME_SIZE)
 
 static uint8_t camera_buffer[CAM_FRAME_SIZE_BYTES] __attribute__((aligned(32), section(".bss.camera_frame_buf")));
 
@@ -100,7 +95,12 @@ int camera_init(void)
         return 0;
     }
 
-    int ret = CAMERAdrv->Initialize(camera_callback);
+    int ret = CAMERAdrv->Uninitialize();
+    if (ret != ARM_DRIVER_OK) {
+        return ret;
+    }
+
+    ret = CAMERAdrv->Initialize(camera_callback);
     if (ret != ARM_DRIVER_OK) {
         //printf("\r\n Error: CAMERA Initialize failed.\r\n");
         return ret;
@@ -184,10 +184,30 @@ int camera_capture_frame(uint8_t* bufferm,uint16_t width, uint16_t height, bool 
     const int rescaleWidth = width;
     const int rescaleHeight = (int)(CAM_FRAME_HEIGHT * (float)rescaleWidth / CAM_FRAME_WIDTH);
 
+    uint32_t cropWidth = 0;
+    uint32_t cropHeight = 0;
+
+    calculate_crop_dims(CAM_FRAME_WIDTH, CAM_FRAME_HEIGHT, 
+                        width, height, &cropWidth, &cropHeight);
+    int res = frame_crop(
+        get_resize_source_buffer(),
+        CAM_FRAME_WIDTH,
+        CAM_FRAME_HEIGHT,
+        (CAM_FRAME_WIDTH - cropWidth) / 2,
+        (CAM_FRAME_HEIGHT - cropHeight) / 2,
+        get_resize_source_buffer(),
+        cropWidth,
+        cropHeight,
+		CAM_USE_RGB565 ? (RGB565_BYTES * 8) : (RGB_BYTES * 8));
+    
+    if (res < 0) { 
+        return res;
+    }
+
     // Swap to BGR in resize phase when using MT9M114 - 
     if (resize_image(get_resize_source_buffer(),
-                CAM_FRAME_WIDTH,
-                CAM_FRAME_HEIGHT,
+                cropWidth,
+                cropHeight,
                 (uint8_t*)bufferm,
                 width,   // width
                 height,  // height

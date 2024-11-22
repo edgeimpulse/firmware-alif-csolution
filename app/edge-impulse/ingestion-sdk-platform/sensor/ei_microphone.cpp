@@ -54,7 +54,7 @@ static bool ei_microphone_stop(void);
 #define MIC_SAMPLE_SIZE_MONO        1600                            /* 50 ms - mono */
 #define MIC_SAMPLE_SIZE_STEREO      (MIC_SAMPLE_SIZE_MONO * 2)      /* 50 ms - stereo */
 
-static int16_t mic_buffer[MIC_SAMPLE_SIZE_STEREO];
+static int16_t mic_buffer[MIC_SAMPLE_SIZE_STEREO] __attribute__((aligned(32), section(".bss.mic_buffer")));;
 
 /* Private variables ------------------------------------------------------- */
 static bool record_ready = false;

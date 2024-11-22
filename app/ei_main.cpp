@@ -24,7 +24,6 @@
 #include "peripheral/ei_uart.h"
 #include "inference/ei_run_impulse.h"
 #include <stdio.h>
-#include "peripheral/inertial/bmi323_icm42670.h"
 #include "ei_inertial.h"
 
 /**

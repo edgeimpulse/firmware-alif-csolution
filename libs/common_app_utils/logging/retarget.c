@@ -27,6 +27,7 @@
  * limitations under the License.
  */
 
+#include <errno.h>
 #if !defined(USE_SEMIHOSTING)
 
 #include <stdio.h>
@@ -274,9 +275,11 @@ int RETARGET(_write)(FILEHANDLE fh, const unsigned char *buf, unsigned int len, 
     switch (fh) {
     case STDOUT:
     case STDERR: {
-        if(in_interrupt() && !in_fault_handler())
+        bool irqs_disabled = __get_PRIMASK() != 0;
+        if((in_interrupt() || irqs_disabled) && !in_fault_handler())
         {
-           // this is ISR context so don't push to UART
+           // this is ISR context or IRQs are disabled so don't push to UART as send_str will
+           // synchronously wait for the tranmission to complete before returning
            if(retarget_buf_len < RETARGET_BUF_MAX)
            {
                // if we're full just drop
@@ -503,3 +506,37 @@ int ferror(FILE *f)
 #endif // GCC build
 
 #endif // USE_SEMIHOSTING
+
+/* Retarget functions built regardless of USE_SEMIHOSTING */
+#ifdef __ARMCC_VERSION
+/* ARMCC */
+#elif __ICCARM__
+/* IAR */
+#else
+/* GCC (newlib) */
+
+// The default _sbrk implementation of newlib does not do heap limit checking
+static char* heap_end = 0;
+void* _sbrk(int incr)
+{
+    extern char heap_start __asm ("end");
+    extern char __HeapLimit;
+
+    char* prev_heap_end;
+
+    if (heap_end == 0) {
+        heap_end = &heap_start;
+    }
+
+    prev_heap_end = heap_end;
+
+    if (heap_end + incr > (&__HeapLimit)) {
+        errno = ENOMEM;
+        return (void*)-1;
+    }
+
+    heap_end += incr;
+    return prev_heap_end;
+}
+#endif // GCC
+

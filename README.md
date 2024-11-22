@@ -27,6 +27,16 @@ git submodule init
 git submodule update
 ```
 
+### When using `build.sh` on macOS
+Building the Alif project requires `nproc` to limit the number of processors used. On macOS, this command is not available. Here you should either install `coreutils` using brew:
+```
+brew install coreutils
+```
+Or create an alias for `nproc` that points to the macOS equivalent
+```
+alias nproc='sysctl -n hw.physicalcpu'
+```
+
 ## Build
 > [!IMPORTANT]
 > To build and manage the project, you need to follow this guide on how to setup the [CMSIS-Toolbox](https://github.com/Open-CMSIS-Pack/cmsis-toolbox/blob/main/docs/README.md)
@@ -99,3 +109,20 @@ Connect the 20pin cable to J13 and press F5.
 
 ## Update your model
 To update your model, unizp the CMSIS pack deployment, install the packs using `cpackget add <your_project_name>.pack` and paste the `model.yml` in the `model` folder.
+
+## Camera config
+The firmware by default is using the MT9M114 camera and it initialize it at 320x320 resolution. 
+If you need a different one, you have to modify the RTE_device.h for the core you are targeting (HP or HE) and modify this define:
+
+```
+// <o> select MT9M114 Image configuration
+// <i> Defines camera sensor MT9M114 Image configuration
+//     <0=>   1288x728_RAW10
+//     <1=>   1280x720_RAW8
+//     <2=>   1280x720_RGB565
+//     <3=>   640x480_RGB565
+//     <4=>   320x240_RGB565
+//     <5=>   320x320_RGB565
+// <i> Default: 0
+#define RTE_MT9M114_CAMERA_SENSOR_MIPI_IMAGE_CONFIG                5
+```

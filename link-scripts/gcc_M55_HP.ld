@@ -28,7 +28,7 @@
  */
 
 __STACK_SIZE    = 0x00002000;
-__HEAP_SIZE     = 0x00030000;
+__HEAP_SIZE     = 0x000A0000;
 __ROM_BASE      = 0x80000000;
 __ROM_SIZE      = 0x0057F000;
 
@@ -55,10 +55,12 @@ SECTIONS
     *system_utils.c.obj(.text .rodata*)
     *pm*(.text .rodata*)
     *tgu_*(.text .rodata*)
+    *tcm_partition.c.obj(.text* .rodata*)
 
-    *peripheral.c.obj(.text .rodata*)
-    *ei_at_handlers.cpp.obj(.text .rodata*)
-    *ei_device_alif_e7.cpp.obj(.text .rodata*)
+    *peripheral.c.obj(.text* .rodata*)
+    *ei_at_handlers.cpp.obj(.text* .rodata*)
+    *ei_device_alif_e7.cpp.obj(.text* .rodata*)
+    *ei_run_fusion_impulse.cpp.obj(.text* .rodata*)
 
     *lv_*.c.obj(.text .rodata*)
 
@@ -128,6 +130,7 @@ SECTIONS
     * (.tensor_arena_buf)
     * (.bss.camera_frame_bayer_to_rgb_buf_at_sram0) /*  Bayer to RGB buffer for bigger resolution MT9M119 */
     * (.bss.camera_frame_buf)              /* Camer Frame Buffer */
+    * (.bss.snapshot_buffer)
   } > SRAM0
 
   .bss.at_sram1 (NOLOAD) : ALIGN(8)
@@ -136,6 +139,7 @@ SECTIONS
     * (.bss.lcd_frame_buf)                 /* LCD frame Buffer. */
     * (.bss.camera_frame_bayer_to_rgb_buf) /* (Optional) Camera Frame Buffer for Bayer to RGB Conversion. */
     * (.bss.device_info)
+    * (.bss.mic_buffer)
   } > SRAM1
 
   .bss.itcm (NOLOAD) : ALIGN(8)
@@ -160,6 +164,7 @@ SECTIONS
     . = . + __HEAP_SIZE;
     . = ALIGN(8);
     __HeapLimit = .;
+    PROVIDE(heap_limit = .);
   } > DTCM
 
   .stack (ORIGIN(DTCM) + LENGTH(DTCM) - __STACK_SIZE) (NOLOAD) : ALIGN(8)

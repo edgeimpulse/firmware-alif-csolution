@@ -77,8 +77,10 @@ bool ei_sampler_start_sampling(void *v_ptr_payload, starter_callback ei_sample_s
 
     sensor_aq_payload_info *payload = (sensor_aq_payload_info *)v_ptr_payload;
 
-    ei_printf("Sampling settings:\n");
-    ei_printf("\tInterval: %.5f ms.\n", dev->get_sample_interval_ms());
+    ei_printf("Sampling settings:\n");    
+    ei_printf("\tInterval: ");
+    ei_printf_float(dev->get_sample_interval_ms());
+    ei_printf("ms.\n");
     ei_printf("\tLength: %lu ms.\n", dev->get_sample_length_ms());
     ei_printf("\tName: %s\n", dev->get_sample_label().c_str());
     ei_printf("\tHMAC Key: %s\n", dev->get_sample_hmac_key().c_str());

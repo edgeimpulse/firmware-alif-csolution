@@ -115,6 +115,14 @@ int i2c_over_i3c_init(uint8_t *i2c_devices, uint8_t num_i2c_devices)
         goto error_uninitialize;
     }
 
+    /* Initialize I3C master */
+    ret = I3Cdrv->Control(I3C_MASTER_INIT, 0);
+    if(ret != ARM_DRIVER_OK)
+    {
+        printf("\r\n Error: Master Init control failed.\r\n");
+        goto error_uninitialize;
+    }
+
     /* i2c Speed Mode Configuration:
      *  I3C_BUS_MODE_MIXED_FAST_I2C_FMP_SPEED_1_MBPS  : Fast Mode Plus   1 MBPS
      *  I3C_BUS_MODE_MIXED_FAST_I2C_FM_SPEED_400_KBPS : Fast Mode      400 KBPS
@@ -126,13 +134,37 @@ int i2c_over_i3c_init(uint8_t *i2c_devices, uint8_t num_i2c_devices)
         goto error_poweroff;
     }
 
+    /* Reject Hot-Join request */
+    ret = I3Cdrv->Control(I3C_MASTER_SETUP_HOT_JOIN_ACCEPTANCE, 0);
+    if(ret != ARM_DRIVER_OK)
+    {
+        printf("\r\n Error: Hot Join control failed.\r\n");
+        goto error_uninitialize;
+    }
+
+    /* Reject Master request */
+    ret = I3Cdrv->Control(I3C_MASTER_SETUP_MR_ACCEPTANCE, 0);
+    if(ret != ARM_DRIVER_OK)
+    {
+        printf("\r\n Error: Master Request control failed.\r\n");
+        goto error_uninitialize;
+    }
+
+    /* Reject Slave Interrupt request */
+    ret = I3Cdrv->Control(I3C_MASTER_SETUP_SIR_ACCEPTANCE, 0);
+    if(ret != ARM_DRIVER_OK)
+    {
+        printf("\r\n Error: Slave Interrupt Request control failed.\r\n");
+        goto error_uninitialize;
+    }
+
     /* Attach all the slave address */
     for(i=0; i<num_i2c_devices; i++)
     {
         // cei_printf("\r\n  >> i=%d attaching i2c slave addr:0x%X to i3c...\r\n",  \
         //                    i, i2c_devices[i]);
 
-        ret = I3Cdrv->AttachI2Cdev(i2c_devices[i]);
+        ret = I3Cdrv->AttachSlvDev(ARM_I3C_DEVICE_TYPE_I2C, i2c_devices[i]);
         if(ret != ARM_DRIVER_OK) {
             goto error_poweroff;
         }
