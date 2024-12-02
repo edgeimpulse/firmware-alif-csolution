@@ -15,7 +15,12 @@ if [ "$TARGET" == "HE" ] || [ "$TARGET" == "HP" ] || [ "$TARGET" == "HP_SRAM" ];
     cbuild ./firmware-alif.csolution.yml -j ${MAKE_JOBS:-$(nproc)} --context-set --update-rte --packs --context firmware-alif.debug+${TARGET}
 elif [ "$TARGET" == "clean" ]; then
     echo "Cleaning"
-    cbuild ./firmware-alif.csolution.yml --clean
+    rm -rf tmp
+    rm -rf out
+
+    rm -f firmware-alif.cbuild*.yml
+    rm -f firmware-alif.*.cprj
+    rm -f *.cbuild.yml
 else
     echo "Invalid target: $TARGET"
     exit 1
