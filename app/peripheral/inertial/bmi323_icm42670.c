@@ -1,6 +1,4 @@
 /*
- * Copyright (c) 2024 EdgeImpulse Inc.
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -51,15 +49,21 @@ static void delay_10us(uint32_t delay)
  */
 int bmi323_icm42670_init(void)
 {
+	int retval = 0;
 	//TODO: RETRUN THE ERROR CODES
-	if(i2c_over_i3c_init((uint8_t[]){BMI323_ADDR, ICM42670_ADDR}, 2) != ARM_DRIVER_OK)
-		return 1;
-	if(initBMI323() != ARM_DRIVER_OK)
-		return 1;
-	if(initICM42670P() != ARM_DRIVER_OK)
-		return 1;
+	if (i2c_over_i3c_init((uint8_t[]){BMI323_ADDR, ICM42670_ADDR}, 2) != ARM_DRIVER_OK) {
+		return -1;
+	}
+		
+	if (initBMI323() == ARM_DRIVER_OK) {
+		retval |= 1;
+	}
+	
+	if (initICM42670P() == ARM_DRIVER_OK) {
+		retval |= 2;
+	}
 
-	return 0;
+	return retval;
 }
 
 /**
@@ -196,6 +200,16 @@ int32_t getBMI323IntStat(bmi323_int_status_t *stat)
 int32_t initBMI323(void)
 {
 	int32_t ret = ARM_DRIVER_ERROR;
+	uint16_t bid = 0;
+
+	ret = getRegBMI323(BMI323_CHIP_ID_REG, &bid);
+	if(ret != ARM_DRIVER_OK)return ret;
+
+	bid = bid & 0x00FF;
+
+	if ((0x0041 != bid) && (0x0043 != bid)) {
+		return ARM_DRIVER_ERROR;
+	}
 
 	//
 	// acc_conf register
@@ -478,9 +492,17 @@ int32_t getICM42670PIntStat(icm42670p_int_status_t *stat)
 int32_t initICM42670P(void)
 {
 	int32_t ret = ARM_DRIVER_ERROR;
-
+	uint16_t iwho = 0;
 	uint8_t mreg1 = 0;
 	icm42670p_int_status_t icm_s;
+
+	ret = getRegICM42670(ICM42670P_WHO_AM_I, &iwho);
+	if (ret != ARM_DRIVER_OK) return ret;
+	iwho = iwho >> 8;
+
+	if(0x0067 != iwho) {
+		return ARM_DRIVER_ERROR;
+	}
 
 	//
 	// power management register

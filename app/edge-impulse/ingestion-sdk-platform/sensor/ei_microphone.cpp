@@ -1,17 +1,35 @@
-/*
- * Copyright (c) 2024 EdgeImpulse Inc.
+/* The Clear BSD License
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
+ * Copyright (c) 2025 EdgeImpulse Inc.
+ * All rights reserved.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted (subject to the limitations in the disclaimer
+ * below) provided that the following conditions are met:
  *
+ *   * Redistributions of source code must retain the above copyright notice,
+ *   this list of conditions and the following disclaimer.
+ *
+ *   * Redistributions in binary form must reproduce the above copyright
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the distribution.
+ *
+ *   * Neither the name of the copyright holder nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
+ *
+ * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY
+ * THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+ * CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "ei_microphone.h"
@@ -50,18 +68,18 @@ static bool ei_microphone_sample_start(void);
 static bool ei_microphone_start(void);
 static bool ei_microphone_stop(void);
 
-//TODO: use multiply of memory block size
-#define MIC_SAMPLE_SIZE_MONO        1600                            /* 50 ms - mono */
-#define MIC_SAMPLE_SIZE_STEREO      (MIC_SAMPLE_SIZE_MONO * 2)      /* 50 ms - stereo */
-
-static int16_t mic_buffer[MIC_SAMPLE_SIZE_STEREO] __attribute__((aligned(32), section(".bss.mic_buffer")));;
-
 /* Private variables ------------------------------------------------------- */
+#define SAMPLING_RATE               (16000u)
+#define SAMPLE_SIZE_IN_MS           (50u)
+#define MIC_SAMPLE_SIZE_MONO        (SAMPLING_RATE / (SAMPLE_SIZE_IN_MS * 2))
+#define MIC_SAMPLE_SIZE_STEREO      (MIC_SAMPLE_SIZE_MONO * 2)                  /* 50 ms - stereo */
+
 static bool record_ready = false;
 static bool is_recording = false;
 static uint8_t n_audio_channels = 2;
-const uint32_t sampling_rate = 16000;
 static uint32_t cbor_current_sample;
+
+static int16_t mic_buffer[MIC_SAMPLE_SIZE_STEREO] __attribute__((aligned(32), section(".bss.mic_buffer")));
 
 static volatile bool rx_event;
 static volatile bool rx_overflow_event;
@@ -178,7 +196,9 @@ static bool ei_microphone_sample_start(void)
     }
 
     ei_printf("Sampling settings:\n");
-    ei_printf("\tInterval: %.5f ms.\n", dev->get_sample_interval_ms());
+    ei_printf("\tInterval: ");
+    ei_printf_float(dev->get_sample_interval_ms());
+    ei_printf(" ms.\n");
     ei_printf("\tLength: %lu ms.\n", dev->get_sample_length_ms());
     ei_printf("\tName: %s\n", dev->get_sample_label().c_str());
     ei_printf("\tHMAC Key: %s\n", dev->get_sample_hmac_key().c_str());
@@ -280,26 +300,6 @@ bool ei_microphone_inference_start(uint32_t n_samples, uint8_t n_channels_infere
 
     ei_microphone_init_channels();
     return true;
-}
-
-/**
- * @brief 
- * 
- * @return true 
- * @return false 
- */
-bool ei_microphone_inference_record(void)
-{
-    bool recorded = false;
-
-    //ei_mic_thread(&ei_mic_inference_samples_callback);
-
-    // if not full, start again
-    //if (inference.buf_ready == 0) {
-        //ei_microphone_start();
-    //}
-
-    return recorded;
 }
 
 /**
@@ -522,7 +522,7 @@ static bool ei_microphone_stop(void)
     int32_t status = 0;
     
     /* Receive data */
-    status = s_i2s_drv->Control(ARM_SAI_CONTROL_RX, 0, 0);  // Uncomment to start/stop the mic.
+    status = s_i2s_drv->Control(ARM_SAI_CONTROL_RX, 0, 0);
     if (status) {
         ei_printf("ERR: I2S Control status = %d\n", status);
         return false;
@@ -661,7 +661,11 @@ static bool ei_microphone_init_channels(void)
     status = s_i2s_drv->Control(ARM_SAI_CONFIGURE_RX | ARM_SAI_MODE_MASTER | ARM_SAI_ASYNCHRONOUS |
                                 ARM_SAI_PROTOCOL_I2S | ARM_SAI_DATA_SIZE(wlen) | ((n_audio_channels == 1) << 19) ,
                                 (wlen * 2),
-                                sampling_rate);
+#if (BOARD_ALIF_DEVKIT_VARIANT == 5)
+                                SAMPLING_RATE);
+#else
+                               (SAMPLING_RATE*n_audio_channels));
+#endif
 
     if (status) {
         ei_printf("I2S Control status = %d\n", status);

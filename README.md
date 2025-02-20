@@ -46,20 +46,26 @@ Go to the CMSIS extension tab, and click the hammer icon.
 
 ### Using the script
 Run the script specifying the target you want to build the project for, if not specified the default is `HP`.
+To specify a target, use --target <TARGET> .
 
 ie to compile HE:
 ```
-sh build.sh HE
+sh build.sh --target HE
 ```
 
 Large models that don't fit into `DTCM` memory can be placed in the `SRAM0` section using the `HP_SRAM` argument:
 ```
-sh build.sh HP_SRAM
+sh build.sh --target HP_SRAM
 ```
 
 To clean:
 ```
-sh build.sh clean
+sh build.sh --clean
+```
+
+To specify a build config, use --config <BUILD_CONFIG> .
+```
+sh build.sh --config Speed
 ```
 
 > [!NOTE]
@@ -87,10 +93,16 @@ Connect the 20-pin connector to J13 and press F5 to start.
 
 ### Flash using script
 Run the script specifying the target you want to be flashed, if not specified the default is `HP`.
+To specify a target, use --target <TARGET> .
 
-ie to flash HE:
+ie to flash --target HE:
 ```
-flash.sh HE
+flash.sh --target HE
+```
+
+To specify a build config, use --config <BUILD_CONFIG>.
+```
+flash.sh --config Speed
 ```
 
 > [!NOTE]
@@ -108,7 +120,7 @@ J15
 Connect the 20pin cable to J13 and press F5.
 
 ## Update your model
-To update your model, unizp the CMSIS pack deployment, install the packs using `cpackget add <your_project_name>.pack` and paste the `model.yml` in the `model` folder.
+To update your model, unizp the CMSIS pack deployment, install the packs using `cpackget add <your_project_name>.pack` and paste the `edgeimpulse.clayer.yml` in the `model` folder.
 
 ## Camera config
 The firmware by default is using the MT9M114 camera and it initialize it at 320x320 resolution. 

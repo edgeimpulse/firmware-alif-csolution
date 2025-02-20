@@ -1,17 +1,35 @@
-/*
- * Copyright (c) 2024 EdgeImpulse Inc.
+/* The Clear BSD License
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
+ * Copyright (c) 2025 EdgeImpulse Inc.
+ * All rights reserved.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted (subject to the limitations in the disclaimer
+ * below) provided that the following conditions are met:
  *
+ *   * Redistributions of source code must retain the above copyright notice,
+ *   this list of conditions and the following disclaimer.
+ *
+ *   * Redistributions in binary form must reproduce the above copyright
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the distribution.
+ *
+ *   * Neither the name of the copyright holder nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
+ *
+ * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY
+ * THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+ * CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 /* Include ----------------------------------------------------------------- */
 #include "model-parameters/model_metadata.h"
@@ -36,10 +54,7 @@ static inference_state_t state = INFERENCE_STOPPED;
 static uint64_t last_inference_ts = 0;
 static bool continuous_mode = false;
 static bool debug_mode = false;
-static int samples_wr_index = 0;
 static uint8_t inference_channels = 0;
-
-static void local_display_results(ei_impulse_result_t* result);
 
 /**
  * @brief 
@@ -68,7 +83,7 @@ void ei_run_impulse(void)
         {
             do {
                 if (ei_microphone_start_inference_recording() == false) {
-                    ei_printf("ERR: Failed to start audio sampling\r\n");
+                    //ei_printf("ERR: Failed to start audio sampling\r\n");
                     return;
                 }
                 __WFI();
@@ -114,12 +129,12 @@ void ei_run_impulse(void)
 
     if (continuous_mode == true) {
         if (++print_results >= (EI_CLASSIFIER_SLICES_PER_MODEL_WINDOW >> 1)) {
-            local_display_results(&result);
+            display_results(&ei_default_impulse, &result);
             print_results = 0;
         }
     }
     else {
-        local_display_results(&result);
+        display_results(&ei_default_impulse, &result);
     }
 
     if (continuous_mode == true) {
@@ -192,23 +207,11 @@ void ei_start_impulse(bool continuous, bool debug, bool use_max_uart_speed)
 void ei_stop_impulse(void)
 {
     if (state != INFERENCE_STOPPED) {
-
-        if (continuous_mode == false) {
-            if (state == INFERENCE_SAMPLING) {
-                while (ei_microphone_inference_record() == false) {
-                    ei_sleep(10);
-                };
-                ei_microphone_inference_end();
-            }
-        }
-        else {
-            ei_microphone_inference_end();
-        }
+        ei_microphone_inference_end();
 
         ei_printf("Inferencing stopped by user\r\n");
 
         /* reset samples buffer */
-        samples_wr_index = 0;
         run_classifier_deinit();
     }
     inference_channels = 0;
@@ -224,65 +227,6 @@ void ei_stop_impulse(void)
 bool is_inference_running(void)
 {
     return (state != INFERENCE_STOPPED);
-}
-
-static void local_display_results(ei_impulse_result_t* result)
-{
-    // print the predictions    
-    ei_printf("Predictions (DSP: ");
-    ei_printf_float((float)result->timing.dsp_us/1000.0);
-    ei_printf(" ms., Classification: ");
-    ei_printf_float((float)result->timing.classification_us/1000.0);
-    ei_printf(" ms., Anomaly: ");
-    ei_printf_float(result->timing.anomaly_us);
-    ei_printf(" ms.): \n");
-
-#if EI_CLASSIFIER_OBJECT_DETECTION == 1
-    ei_printf("#Object detection results:\r\n");
-    bool bb_found = result->bounding_boxes[0].value > 0;
-    for (size_t ix = 0; ix < result->bounding_boxes_count; ix++) {
-        auto bb = result->bounding_boxes[ix];
-        if (bb.value == 0) {
-            continue;
-        }
-        ei_printf("    %s (", bb.label);
-        ei_printf_float(bb.value);
-        ei_printf(") [ x: %u, y: %u, width: %u, height: %u ]\n", bb.x, bb.y, bb.width, bb.height);
-    }
-
-    if (!bb_found) {
-        ei_printf("    No objects found\n");
-    }
-
-#elif (EI_CLASSIFIER_LABEL_COUNT == 1) && (!EI_CLASSIFIER_HAS_ANOMALY)// regression
-    ei_printf("#Regression results:\r\n");
-    ei_printf("    %s: ", result->classification[0].label);
-    ei_printf_float(result->classification[0].value);
-    ei_printf("\n");
-
-#elif EI_CLASSIFIER_LABEL_COUNT > 1 // if there is only one label, this is an anomaly only
-    ei_printf("#Classification results:\r\n");
-    for (size_t ix = 0; ix < EI_CLASSIFIER_LABEL_COUNT; ix++) {
-        ei_printf("    %s: ", result->classification[ix].label);
-        ei_printf_float(result->classification[ix].value);
-        ei_printf("\n");
-    }
-#endif
-#if EI_CLASSIFIER_HAS_ANOMALY == 3 // visual AD
-    ei_printf("#Visual anomaly grid results:\r\n");
-    for (uint32_t i = 0; i < result->visual_ad_count; i++) {
-        ei_impulse_result_bounding_box_t bb = result->visual_ad_grid_cells[i];
-        if (bb.value == 0) {
-            continue;
-        }
-        ei_printf("    %s (", bb.label);
-        ei_printf_float(bb.value);
-        ei_printf(") [ x: %u, y: %u, width: %u, height: %u ]\n", bb.x, bb.y, bb.width, bb.height);
-    }
-    ei_printf("Visual anomaly values: Mean %.3f Max %.3f\r\n", result->visual_ad_result.mean_value, result->visual_ad_result.max_value);
-#elif (EI_CLASSIFIER_HAS_ANOMALY > 0) // except for visual AD
-    ei_printf("Anomaly prediction: %.3f\r\n", result->anomaly);
-#endif
 }
 
 #endif

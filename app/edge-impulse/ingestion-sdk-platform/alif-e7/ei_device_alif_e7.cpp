@@ -1,17 +1,35 @@
-/*
- * Copyright (c) 2024 EdgeImpulse Inc.
+/* The Clear BSD License
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
+ * Copyright (c) 2025 EdgeImpulse Inc.
+ * All rights reserved.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted (subject to the limitations in the disclaimer
+ * below) provided that the following conditions are met:
  *
+ *   * Redistributions of source code must retain the above copyright notice,
+ *   this list of conditions and the following disclaimer.
+ *
+ *   * Redistributions in binary form must reproduce the above copyright
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the distribution.
+ *
+ *   * Neither the name of the copyright holder nor the names of its
+ *   contributors may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
+ *
+ * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY
+ * THIS LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+ * CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
 /* Includes ---------------------------------------------------------------- */
@@ -46,19 +64,27 @@ EiDeviceAlif::EiDeviceAlif(EiDeviceMemory* mem)
     load_config();
 
 #if defined (CORE_M55_HE)
+#if (BOARD_ALIF_DEVKIT_VARIANT == 5)
     device_type = "ALIF_E7_APPKIT_GEN2_HE";
 #else
+    device_type = "ALIF_E7_DEVKIT_GEN2_HE";
+#endif
+#else
+#if (BOARD_ALIF_DEVKIT_VARIANT == 5)
     device_type = "ALIF_E7_APPKIT_GEN2_HP";
+#else
+    device_type = "ALIF_E7_DEVKIT_GEN2_HP";
+#endif
 #endif
 
     /* Init standalone sensor */
     sensors[MICROPHONE].name = "Microphone";
-    sensors[MICROPHONE].frequencies[0] = 16000;
+    sensors[MICROPHONE].frequencies[0] = 16000.0;
     sensors[MICROPHONE].max_sample_length_s = 10;
     sensors[MICROPHONE].start_sampling_cb = ei_microphone_sample_start_mono;
 
     sensors[MICROPHONE_2CH].name = "Microphone 2 channels";
-    sensors[MICROPHONE_2CH].frequencies[0] = 16000;
+    sensors[MICROPHONE_2CH].frequencies[0] = 16000.0;
     sensors[MICROPHONE_2CH].max_sample_length_s = 5;
     sensors[MICROPHONE_2CH].start_sampling_cb = ei_microphone_sample_start_stereo;
 
@@ -127,18 +153,27 @@ void EiDeviceAlif::set_default_data_output_baudrate(void)
  */
 EiSnapshotProperties EiDeviceAlif::get_snapshot_list(void)
 {
-    ei_device_snapshot_resolutions_t **res;
-    uint8_t res_num;
+    ei_device_snapshot_resolutions_t *res = NULL;
 
-    cam->get_resolutions(res, &res_num);
-
+    uint8_t res_num = 0;
     EiSnapshotProperties props = {
-        .has_snapshot = true,
-        .support_stream = true,
-        .color_depth = "RGB",
+        .has_snapshot = false,
+        .support_stream = false,
+        .color_depth = "",
         .resolutions_num = res_num,
-        .resolutions = *res
+        .resolutions = res
     };
+
+    if (cam->is_camera_present() == true) {
+        cam->get_resolutions(&res, &res_num);
+        props.has_snapshot = true;
+        props.support_stream = true;        
+        props.color_depth = "RGB";
+        props.resolutions_num = res_num;
+        props.resolutions = res;
+
+        return props; 
+    }
 
     return props;
 }
