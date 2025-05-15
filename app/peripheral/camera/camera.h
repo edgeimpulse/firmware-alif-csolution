@@ -37,13 +37,15 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "RTE_Components.h"
 #include "RTE_Device.h"
+#include "model-parameters/model_metadata.h"
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-#if RTE_Drivers_CAMERA_SENSOR_MT9M114
+#if defined(RTE_Drivers_CAMERA_SENSOR_MT9M114) && (RTE_Drivers_CAMERA_SENSOR_MT9M114 == 1)
 #if (RTE_MT9M114_CAMERA_SENSOR_MIPI_IMAGE_CONFIG == 2)
     #define CAM_FRAME_WIDTH        (1280)
     #define CAM_FRAME_HEIGHT       (720)
@@ -59,9 +61,11 @@ extern "C" {
 #else
     #error "Unsupported MT9M114 configuration"
 #endif
-#else
+#elif defined (RTE_Drivers_CAMERA_SENSOR_ARX3A0) && (RTE_Drivers_CAMERA_SENSOR_ARX3A0 == 1)
 #define CAM_FRAME_WIDTH        (RTE_ARX3A0_CAMERA_SENSOR_FRAME_WIDTH)
 #define CAM_FRAME_HEIGHT       (RTE_ARX3A0_CAMERA_SENSOR_FRAME_HEIGHT)
+#else
+#error "Unsupported camera sensor"
 #endif
 
 #define CAM_BYTES_PER_PIXEL 
@@ -70,8 +74,14 @@ extern "C" {
 #define CAM_FRAME_SIZE_BYTES (CAM_FRAME_SIZE + CAM_USE_RGB565 * CAM_FRAME_SIZE)
 
 extern int camera_init(void);
-extern int camera_capture_frame(uint8_t* bufferm,uint16_t width, uint16_t height, bool swap_BGR);
+extern int camera_capture_frame(uint8_t* bufferm, uint16_t width, uint16_t height, bool to_rgb888);
 extern void camera_get_max_res(uint16_t* width, uint16_t* height);
+extern int camera_start_stream(void);
+
+#if (defined(LCD_SUPPORTED) && (LCD_SUPPORTED == 1)) && (defined(EI_CLASSIFIER_SENSOR) && (EI_CLASSIFIER_SENSOR == EI_CLASSIFIER_SENSOR_CAMERA))
+extern void camera_stop_stream(void);
+extern bool camera_capture_stream_frame(uint8_t* bufferm, uint16_t width, uint16_t height);
+#endif
 
 #if defined(__cplusplus)
 }

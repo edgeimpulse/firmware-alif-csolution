@@ -38,8 +38,12 @@
 #include "firmware-sdk/ei_fusion.h"
 #include "inference/ei_run_impulse.h"
 #include "model-parameters/model_variables.h"
-
 #include "edge-impulse/ingestion-sdk-platform/alif-e7/ei_device_alif_e7.h"
+#include "inference_task.h"
+
+#if (defined(LCD_SUPPORTED) && (LCD_SUPPORTED == 1))
+#include "lcd_task.h"
+#endif
 
 typedef enum {
     INFERENCE_STOPPED,
@@ -159,10 +163,16 @@ void ei_run_impulse(void)
         if(++print_results >= (EI_CLASSIFIER_SLICES_PER_MODEL_WINDOW >> 1)) {
             display_results(&ei_default_impulse, &result);
             print_results = 0;
+#if (defined(LCD_SUPPORTED) && (LCD_SUPPORTED == 1))
+            lcd_set_result(&result);
+#endif
         }
     }
     else {
         display_results(&ei_default_impulse, &result);
+#if (defined(LCD_SUPPORTED) && (LCD_SUPPORTED == 1))
+        lcd_set_result(&result);
+#endif
     }
 
     if(continuous_mode == true) {
@@ -173,6 +183,8 @@ void ei_run_impulse(void)
         last_inference_ts = ei_read_timer_ms();
         state = INFERENCE_WAITING;
     }
+
+    inference_task_start();
 }
 
 /**
@@ -236,6 +248,8 @@ void ei_start_impulse(bool continuous, bool debug, bool use_max_uart_speed)
         last_inference_ts = ei_read_timer_ms();
         state = INFERENCE_WAITING;
     }
+
+    inference_task_start();
 }
 
 /**

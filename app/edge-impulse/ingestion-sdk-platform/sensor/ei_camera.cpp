@@ -37,7 +37,6 @@
 #include "peripheral/camera/camera.h"
 
 ei_device_snapshot_resolutions_t EiAlifCamera::resolutions[] = {
-        {96, 64},
         {96, 96},
         {160, 120},
         {160, 160},
@@ -49,17 +48,15 @@ ei_device_snapshot_resolutions_t EiAlifCamera::resolutions[] = {
             {320, 320},
     #elif (RTE_MT9M114_CAMERA_SENSOR_MIPI_IMAGE_CONFIG == 3)
         {320, 320},
-        {640, 480},
+        //{640, 480},
     #elif (RTE_MT9M114_CAMERA_SENSOR_MIPI_IMAGE_CONFIG == 2)
         {320, 320},
-        {640, 480},
-        {1280, 720},
+        //{640, 480},
+        //{1280, 720},
     #endif
 #endif
 
 };
-
-static uint8_t snapshot_buffer[CAM_FRAME_SIZE * 2 * 3] __attribute__((aligned(32), section(".bss.snapshot_buffer")));
 
 /**
  * @brief 
@@ -71,8 +68,9 @@ static uint8_t snapshot_buffer[CAM_FRAME_SIZE * 2 * 3] __attribute__((aligned(32
  */
 bool EiAlifCamera::init(uint16_t width, uint16_t height)
 {
-    if (camera_init() != 0) {
-        ei_printf("Failed to init camera\r\n");
+    int retval = camera_init();
+    if (retval != 0) {
+        ei_printf("Failed to init camera, error code %d\r\n", retval);
         return false;
     }
 
@@ -138,13 +136,11 @@ bool EiAlifCamera::ei_camera_capture_rgb888_packed_big_endian(
     uint8_t *image,
     uint32_t image_size)
 {
-    return ((camera_capture_frame(image, this->width, this->height, false) * 3) == image_size);    
-}
+    if (!camera_found) {
+        return false;
+    }
 
-bool EiAlifCamera::get_fb_ptr(uint8_t** fb_ptr)
-{
-    *fb_ptr = snapshot_buffer;
-    return true;
+    return ((camera_capture_frame(image, this->width, this->height, false) * 3) == image_size);
 }
 
 /**

@@ -27,8 +27,8 @@
  * limitations under the License.
  */
 
-__STACK_SIZE    = 0x00002000;
-__HEAP_SIZE     = 0x00030000;
+__STACK_SIZE    = 0x00001000;
+__HEAP_SIZE     = 0x00001000;
 __ROM_BASE      = 0x80000000;
 __ROM_SIZE      = 0x0057F000;
 
@@ -62,14 +62,13 @@ SECTIONS
     *ei_device_alif_e7.cpp.obj(.text* .rodata*)
     *ei_run_fusion_impulse.cpp.obj(.text* .rodata*)
 
-    *lv_*.c.obj(.text .rodata*)    
-
     *libg.a:*printf*(.text* .rodata*)
     *libstdc++.a:cp-demangle.o(.text* .rodata*)
     *CMSIS*.obj(.text .rodata*)
     *flatbuffer*.obj(.text .rodata*)
     
     *(startup_ro_data)
+    . = ALIGN(16);
   } > MRAM
 
   .copy.table : ALIGN(4)
@@ -139,17 +138,20 @@ SECTIONS
   {
     *arm_common_tables.c.obj(.bss.*)
     *CommonTables.c.obj(.bss.*)
-    * (.bss.lcd_crop_and_interpolate_buf)  /* LCD crop and intrepolate image processing buffer. */
+    * (.bss.at_sram0*)
+    * (.tensor_arena_buf_sram)
+    * (.bss.camera_frame_bayer_to_rgb_buf_at_sram0) /*  Bayer to RGB buffer for bigger resolution MT9M119 */
+
     * (.bss.lcd_frame_buf)                 /* LCD frame Buffer. */
-    * (.tensor_arena_buf)
-    * (.bss.device_info)
+    * (.bss.local_heap)
   } > SRAM0
 
   .bss.at_sram1 (NOLOAD) : ALIGN(8)
   {
+    * (.bss.at_sram1*)
     * (.bss.camera_frame_buf)              /* Camer Frame Buffer */
     * (.bss.camera_frame_bayer_to_rgb_buf) /* (Optional) Camera Frame Buffer for Bayer to RGB Conversion. */
-    * (.bss.snapshot_buffer)
+    * (.bss.device_info)
     * (.bss.mic_buffer)
   } > SRAM1
 

@@ -42,6 +42,9 @@
 #include "peripheral/ei_uart.h"
 #include "peripheral/timer.h"
 
+#include "FreeRTOS.h"
+#include "task.h"
+
 /* Extern function prototypes ---------------------------------------------- */
 
 EI_IMPULSE_ERROR ei_run_impulse_check_canceled()
@@ -157,17 +160,24 @@ char ei_getchar(void)
 
 void *ei_malloc(size_t size)
 {
-    return malloc(size);
+    if (size == 0) {
+        return NULL;
+    }
+    return pvPortMalloc(size);
 }
 
 void *ei_calloc(size_t nitems, size_t size)
 {
-    return calloc(nitems, size);
+    if ((size == 0) || (nitems == 0)) {
+        return NULL;
+    }
+
+    return pvPortCalloc(nitems, size);
 }
 
 void ei_free(void *ptr)
 {
-    free(ptr);
+    vPortFree(ptr);
 }
 
 #if defined(__cplusplus) && EI_C_LINKAGE == 1
@@ -177,4 +187,44 @@ extern "C"
     DebugLog(const char *s)
 {
     ei_printf("%s", s);
+}
+
+void * operator new( size_t size )
+{
+    if (size == 0) {
+        return NULL;
+    }
+    void* new_data = pvPortMalloc( size );
+    if (new_data != NULL) {
+        memset(new_data, 0, size);
+    }
+    return new_data;
+}
+
+void * operator new[]( size_t size )
+{
+    if (size == 0) {
+        return NULL;
+    }
+    void* new_data = pvPortMalloc( size );
+    if (new_data != NULL) {
+        memset(new_data, 0, size);
+    }
+    return new_data;
+}
+
+void operator delete( void * ptr )
+{
+    if (ptr == NULL) {
+        return;
+    }
+    vPortFree ( ptr );
+}
+
+void operator delete[]( void * ptr )
+{
+    if (ptr == NULL) {
+        return;
+    }
+    vPortFree ( ptr );
 }

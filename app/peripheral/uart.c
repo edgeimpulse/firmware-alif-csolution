@@ -31,7 +31,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include "FreeRTOS.h"
+#include "task.h"
+#include "event_groups.h"
 
+#include "common_events.h"
 #include "ei_uart.h"
 #include "pinconf.h"
 #include "board.h"
@@ -55,10 +59,14 @@ static volatile bool g_uart_rx_completed;
 extern ARM_DRIVER_USART ARM_Driver_USART_(BOARD_UART1_INSTANCE);
 /* UART Driver instance */
 static ARM_DRIVER_USART *USARTdrv = &ARM_Driver_USART_(BOARD_UART1_INSTANCE);
+const IRQn_Type uart_irq_nr = UART2_IRQ_IRQn;
+
 #elif (defined BOARD_IS_ALIF_DEVKIT_B0_VARIANT)
 extern ARM_DRIVER_USART ARM_Driver_USART_(BOARD_UART2_INSTANCE);
 /* UART Driver instance */
 static ARM_DRIVER_USART *USARTdrv = &ARM_Driver_USART_(BOARD_UART2_INSTANCE);
+const IRQn_Type uart_irq_nr = UART4_IRQ_IRQn;
+
 #else
 #error "Unsupported board variant"
 #endif
@@ -127,6 +135,9 @@ int ei_uart_init(uint32_t baudrate)
     if(ret != ARM_DRIVER_OK) {
         return ret;
     }
+
+    // need to overwrite irq priority to be able to use FreeRTOS API
+    NVIC_SetPriority(UART2_IRQ_IRQn, configMAX_SYSCALL_INTERRUPT_PRIORITY);
 
     initialized = true;
 
@@ -202,6 +213,8 @@ void ei_flush_rx_buffer(void)
  */
 static void ei_uart_callback(uint32_t event)
 {    
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
     if (event & ARM_USART_EVENT_SEND_COMPLETE) {
         /* Send Success */
         event_flags_uart |= UART_CB_TX_EVENT;
@@ -214,6 +227,7 @@ static void ei_uart_callback(uint32_t event)
         if ((rx_char == CARRIAGE_ASCII) || (rx_char == 'b')) {
         //if ((rx_char == CARRIAGE_ASCII)) {
             g_uart_rx_completed = true;
+            xEventGroupSetBitsFromISR(common_event_group, EVENT_RX_READY, &xHigherPriorityTaskWoken);
         }
         USARTdrv->Receive((void*)&rx_char, 1);
     }
@@ -222,6 +236,8 @@ static void ei_uart_callback(uint32_t event)
         /* Receive Success with rx timeout */
         event_flags_uart |= UART_CB_RX_TIMEOUT;
     }
+
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 /**

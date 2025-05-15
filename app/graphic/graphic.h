@@ -32,33 +32,41 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _EI_CAMERA_H_
-#define _EI_CAMERA_H_
+#ifndef _GRAPHIC_H_
+#define _GRAPHIC_H_
 
-#include "firmware-sdk/ei_camera_interface.h"
-#include "firmware-sdk/ei_device_info_lib.h"
+#include <stdint.h>
+#include <stdbool.h>
 
-class EiAlifCamera : public EiCamera
-{
-private:
-    static ei_device_snapshot_resolutions_t resolutions[];
-
-    bool camera_found;
-    uint16_t width;
-    uint16_t height;
-
-public:
-    bool is_camera_present(void) {return camera_found;};
-    bool init(uint16_t width, uint16_t height) override;
-    bool deinit(void) override; 
-    void get_resolutions(ei_device_snapshot_resolutions_t **res, uint8_t *res_num) override;
-    bool set_resolution(const ei_device_snapshot_resolutions_t res) override;
-    ei_device_snapshot_resolutions_t get_min_resolution(void) override;
-    ei_device_snapshot_resolutions_t search_resolution(uint32_t required_width, uint32_t required_height) override;
-
-    bool ei_camera_capture_rgb888_packed_big_endian(
-        uint8_t *image,
-        uint32_t image_size) override;
-};
-
+#ifdef __cplusplus
+extern "C" {
 #endif
+#define MY_DISP_HOR_RES    (RTE_PANEL_HACTIVE_TIME)
+
+#define MY_DISP_VER_RES    (RTE_PANEL_VACTIVE_LINE)
+
+#define EVENT_DISP_BUFFER_READY     ( 1 << 0 )
+#define EVENT_DISP_BUFFER_CHANGED   ( 1 << 1 )
+
+extern void graphic_init(void);
+extern void graphic_start_buffer(void);
+extern void graphic_end_frame(void);
+extern void disp_next_frame(void);
+
+extern void draw_logo(void);
+extern void graphic_set_centroid(const char* label, uint16_t x0, uint16_t y0, uint16_t width, uint16_t height, float value, float ratio);
+extern void graphic_set_box(const char* label, uint16_t x0, uint16_t y0, uint16_t width, uint16_t height, float value, float ratio);
+extern void graphic_set_detection_text(const char* label, uint16_t x0, uint16_t y0, uint16_t width, uint16_t height, float value);
+extern void display_camera_screen(uint8_t* pbuff, uint16_t width, uint16_t height);
+
+extern void graphic_start_text_obj_detection(void);
+extern void graphic_no_detection(void);
+extern void graphic_set_timing(int16_t fps, uint32_t dsp_us, uint32_t classification_us);
+extern void graphic_start_label(const char* initial_string, bool is_live);
+extern void graphic_update_classification(const char* label, float value);
+
+#ifdef __cplusplus
+} /*extern "C"*/
+#endif
+
+#endif // _GRAPHIC_H_

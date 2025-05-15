@@ -40,6 +40,27 @@
 #include "ingestion-sdk-platform/sensor/ei_camera.h"
 #include "firmware-sdk/at_base64_lib.h"
 #include "firmware-sdk/jpeg/encode_as_jpg.h"
+#include "inference_task.h"
+
+#include "FreeRTOS.h"
+#include "task.h"
+
+
+#if (defined(LCD_SUPPORTED) && (LCD_SUPPORTED == 1))
+
+#include "lcd_task.h"
+
+#if (defined(EI_CLASSIFIER_SENSOR) && (EI_CLASSIFIER_SENSOR == EI_CLASSIFIER_SENSOR_CAMERA))
+
+#include "peripheral/camera/image_processing.h"
+
+#include "aipl_image.h"
+#include "aipl_crop.h"
+#include "aipl_resize.h"
+#include "aipl_color_conversion.h"
+
+#endif
+#endif
 
 typedef enum {
     INFERENCE_STOPPED,
@@ -55,9 +76,13 @@ static bool debug_mode = false;
 static bool continuous_mode = false;
 static bool use_max_uart = false;
 
-static uint8_t *snapshot_buf = nullptr;
+//static uint8_t *snapshot_buf = nullptr;
 static uint32_t snapshot_buf_size;
-
+#if defined (CORE_M55_HE)
+static uint8_t snapshot_buf[EI_CLASSIFIER_INPUT_WIDTH * EI_CLASSIFIER_INPUT_HEIGHT * 3] __attribute__((aligned(32), section(".bss.local_heap")));
+#else
+static uint8_t snapshot_buf[EI_CLASSIFIER_INPUT_WIDTH * EI_CLASSIFIER_INPUT_HEIGHT * 3];
+#endif
 static ei_device_snapshot_resolutions_t snapshot_resolution;
 static ei_device_snapshot_resolutions_t fb_resolution;
 
@@ -133,6 +158,7 @@ void ei_start_impulse(bool continuous, bool debug, bool use_max_uart_speed)
         ei_sleep(100);
     }
 
+    inference_task_start();
 }
 
 /**
@@ -153,6 +179,9 @@ void ei_stop_impulse(void)
     state = INFERENCE_STOPPED;
 }
 
+/**
+ * 
+ */
 void ei_run_impulse(void)
 {
     switch(state) {
@@ -160,27 +189,19 @@ void ei_run_impulse(void)
             // nothing to do
             return;
         case INFERENCE_WAITING:
-            if(ei_read_timer_ms() < (last_inference_ts + inference_delay)) {
+            if (ei_read_timer_ms() < (last_inference_ts + inference_delay)) {
                 return;
             }
             state = INFERENCE_DATA_READY;
             break;
         case INFERENCE_SAMPLING:
         case INFERENCE_DATA_READY:
-            if(continuous_mode == true) {
+            if (continuous_mode == true) {
                 state = INFERENCE_WAITING;
             }
             break;
         default:
             break;
-    }
-
-    snapshot_buf = (uint8_t*)ei_malloc(snapshot_buf_size + 32);
-
-    // check if allocation was successful
-    if(snapshot_buf == nullptr) {
-        ei_printf("ERR: Failed to allocate snapshot buffer!\n");
-        return;
     }
 
     EiAlifCamera *camera = static_cast<EiAlifCamera*>(EiAlifCamera::get_camera());
@@ -207,7 +228,7 @@ void ei_run_impulse(void)
     signal.get_data = &ei_camera_get_data;
 
     // Print framebuffer as JPG during debugging
-    if(debug_mode) {
+    if (debug_mode) {
         ei_printf("Begin output\n");
 
         size_t jpeg_buffer_size = EI_CLASSIFIER_INPUT_WIDTH * EI_CLASSIFIER_INPUT_HEIGHT >= 128 * 128 ?
@@ -239,22 +260,27 @@ void ei_run_impulse(void)
     // run the impulse: DSP, neural network and the Anomaly algorithm
     ei_impulse_result_t result = { 0 };
 
+    vTaskSuspendAll();
     EI_IMPULSE_ERROR ei_error = run_classifier(&signal, &result, false);
+    xTaskResumeAll();
     if (ei_error != EI_IMPULSE_OK) {
         ei_printf("ERR: Failed to run impulse (%d)\n", ei_error);
-        ei_free(snapshot_buf);
+        //ei_free(snapshot_buf);
         return;
     }
-    ei_free(snapshot_buf);
+    //ei_free(snapshot_buf);
 
     display_results(&ei_default_impulse, &result);
+#if (defined(LCD_SUPPORTED) && (LCD_SUPPORTED == 1))
+    lcd_set_result(&result);
+#endif
 
     if (debug_mode) {
         ei_printf("\r\n----------------------------------\r\n");
         ei_printf("End output\r\n");
     }
 
-    if(continuous_mode == false) {
+    if (continuous_mode == false) {
         ei_printf("Starting inferencing in %d seconds...\n", inference_delay / 1000);
         last_inference_ts = ei_read_timer_ms();
         state = INFERENCE_WAITING;
@@ -298,5 +324,89 @@ static int ei_camera_get_data(size_t offset, size_t length, float *out_ptr)
     // and done!
     return 0;
 }
+
+#if (defined(LCD_SUPPORTED) && (LCD_SUPPORTED == 1)) && (defined(EI_CLASSIFIER_SENSOR) && (EI_CLASSIFIER_SENSOR == EI_CLASSIFIER_SENSOR_CAMERA))
+/**
+ *
+ * @param pbuffer
+ * @param width
+ * @param height
+ * @param presult
+ */
+void ei_run_stream_impulse(uint8_t* pbuffer, uint16_t width, uint16_t height, ei_impulse_result_t* presult)
+{
+#if 0
+    aipl_error_t aipl_ret = AIPL_ERR_OK;
+
+    aipl_image_t cam_image = {
+        .data = pbuffer,
+        .pitch = width,
+        .width = width,
+        .height = height,
+        .format = AIPL_COLOR_RGB565
+    };
+
+    aipl_image_t res_image = {
+        .data = snapshot_buf,
+        .pitch = EI_CLASSIFIER_INPUT_WIDTH,
+        .width = EI_CLASSIFIER_INPUT_WIDTH,
+        .height = EI_CLASSIFIER_INPUT_HEIGHT,
+        .format = AIPL_COLOR_RGB565
+    };
+
+    if (pbuffer == NULL) {
+        ei_printf("ERR: Invalid input framebuffer\n");
+        return;
+    }
+
+    aipl_ret = aipl_resize_img(&cam_image, &res_image, true);  // interpolate
+
+    if (aipl_ret != AIPL_ERR_OK) {
+        ei_printf("Error: resize aipl_ret = %s\r\n", aipl_error_str(aipl_ret));
+    }
+
+    aipl_ret = aipl_color_convert(snapshot_buf, snapshot_buf, EI_CLASSIFIER_INPUT_WIDTH, EI_CLASSIFIER_INPUT_WIDTH, EI_CLASSIFIER_INPUT_HEIGHT, AIPL_COLOR_RGB565, AIPL_COLOR_RGB888);
+    if (aipl_ret != AIPL_ERR_OK) {
+        ei_printf("Error: color conversion aipl_ret = %s\r\n", aipl_error_str(aipl_ret));
+    }
+#endif
+        // Swap to BGR in resize phase when using MT9M114 - 
+    if (resize_image(pbuffer,
+        width,
+        height,
+        (uint8_t*)snapshot_buf,
+        EI_CLASSIFIER_INPUT_WIDTH,   // width
+        EI_CLASSIFIER_INPUT_HEIGHT,  // height
+        RGB565_BYTES,
+        (false && (0 == 0))) != 0) {
+        ei_printf("Error: resize_image failed\r\n");
+        return ;
+    }
+
+#if 0
+    ei::image::processing::crop_and_interpolate_rgb888(
+        snapshot_buf,
+        EI_CLASSIFIER_INPUT_WIDTH,
+        EI_CLASSIFIER_INPUT_HEIGHT,
+        snapshot_buf,
+        EI_CLASSIFIER_INPUT_WIDTH,
+        EI_CLASSIFIER_INPUT_HEIGHT); // bytes per pixel
+#endif
+
+    ei::signal_t signal;
+    signal.total_length = EI_CLASSIFIER_INPUT_WIDTH * EI_CLASSIFIER_INPUT_HEIGHT;
+    signal.get_data = &ei_camera_get_data;
+
+    memset(presult, 0, sizeof(ei_impulse_result_t));
+
+    //vTaskSuspendAll();
+    EI_IMPULSE_ERROR ei_error = run_classifier(&signal, presult, false);
+    //xTaskResumeAll();
+
+    if (ei_error != EI_IMPULSE_OK) {
+        ei_printf("ERR: Failed to run impulse (%d)\n", ei_error);
+    }
+}
+#endif  /* #if (defined(LCD_SUPPORTED) && (LCD_SUPPORTED == 1)) && (defined(EI_CLASSIFIER_SENSOR) && (EI_CLASSIFIER_SENSOR == EI_CLASSIFIER_SENSOR_CAMERA)) */
 
 #endif /* defined(EI_CLASSIFIER_SENSOR) && EI_CLASSIFIER_SENSOR == EI_CLASSIFIER_SENSOR_CAMERA */

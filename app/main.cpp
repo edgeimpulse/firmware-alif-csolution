@@ -32,18 +32,41 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "FreeRTOS.h"
+#include "FreeRTOSConfig.h"
+#include "task.h"
+
 #include "RTE_Components.h"
 #include CMSIS_device_header
 #include "ei_main.h"
 #include "peripheral/peripheral.h"
+#include "npu/npu_handler.h"
+#include "board.h"
+#include "common_events.h"
+
+// heap memory
+#if configAPPLICATION_ALLOCATED_HEAP == 1
+uint8_t ucHeap[ configTOTAL_HEAP_SIZE ] __attribute__((aligned(32), section(".bss.local_heap")));
+#endif
+
+EventGroupHandle_t common_event_group;
 
 int main (void)
 {
     peripheral_init();
 
-    ei_main();
+    if (npu_init()) {
+        BOARD_LED1_Control(BOARD_LED_STATE_TOGGLE);
+        BOARD_LED2_Control(BOARD_LED_STATE_TOGGLE);
+    }
 
-    while (1) __WFI();
+    cpu_cache_enable();
+
+    common_event_group = xEventGroupCreate();
+    start_ei_main();
+
+    // Start thread execution
+    vTaskStartScheduler();
 
     return 0;
 }

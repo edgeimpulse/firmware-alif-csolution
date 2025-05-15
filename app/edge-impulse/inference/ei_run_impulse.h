@@ -37,11 +37,15 @@
 
 #include <cstdint>
 #include "edge-impulse-sdk/classifier/ei_classifier_types.h"
+#include "model-parameters/model_metadata.h"
 
 extern void ei_start_impulse(bool continuous, bool debug, bool use_max_uart_speed = false);
 extern void ei_run_impulse(void);
 extern void ei_stop_impulse(void);
 extern bool is_inference_running(void);
+
+#if (defined(LCD_SUPPORTED) && (LCD_SUPPORTED == 1)) && (defined(EI_CLASSIFIER_SENSOR) && (EI_CLASSIFIER_SENSOR == EI_CLASSIFIER_SENSOR_CAMERA))
 extern void ei_run_stream_impulse(uint8_t* pbuffer, uint16_t width, uint16_t height, ei_impulse_result_t* presult);
+#endif
 
 #endif /* EI_RUN_IMPULSE_H */

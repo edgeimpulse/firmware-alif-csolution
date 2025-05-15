@@ -32,33 +32,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _EI_CAMERA_H_
-#define _EI_CAMERA_H_
+#ifndef _INFERENCE_TASK_H_
+#define _INFERENCE_TASK_H_
 
-#include "firmware-sdk/ei_camera_interface.h"
-#include "firmware-sdk/ei_device_info_lib.h"
-
-class EiAlifCamera : public EiCamera
-{
-private:
-    static ei_device_snapshot_resolutions_t resolutions[];
-
-    bool camera_found;
-    uint16_t width;
-    uint16_t height;
-
-public:
-    bool is_camera_present(void) {return camera_found;};
-    bool init(uint16_t width, uint16_t height) override;
-    bool deinit(void) override; 
-    void get_resolutions(ei_device_snapshot_resolutions_t **res, uint8_t *res_num) override;
-    bool set_resolution(const ei_device_snapshot_resolutions_t res) override;
-    ei_device_snapshot_resolutions_t get_min_resolution(void) override;
-    ei_device_snapshot_resolutions_t search_resolution(uint32_t required_width, uint32_t required_height) override;
-
-    bool ei_camera_capture_rgb888_packed_big_endian(
-        uint8_t *image,
-        uint32_t image_size) override;
-};
+extern void inference_task_start(void);
 
 #endif

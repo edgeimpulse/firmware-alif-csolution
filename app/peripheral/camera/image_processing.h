@@ -27,6 +27,10 @@
 #define FRAME_FORMAT_NOT_SUPPORTED   -1
 #define FRAME_OUT_OF_RANGE           -2
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 
 extern uint32_t exposure_under_count, exposure_low_count, exposure_high_count, exposure_over_count;
 
@@ -34,7 +38,12 @@ int frame_crop(const void *input_fb, uint32_t ip_row_size, uint32_t ip_col_size,
 int crop_and_interpolate(uint8_t *image, uint32_t srcWidth, uint32_t srcHeight, uint32_t dstWidth, uint32_t dstHeight, uint32_t bpp);
 void white_balance(int width, int height, const uint8_t *sp, uint8_t *dp);
 int bayer_to_RGB(uint8_t *src, uint8_t *dest);
-
+void calculate_crop_dims(uint32_t srcWidth,
+						 uint32_t srcHeight,
+						 uint32_t dstWidth,
+						 uint32_t dstHeight,
+						 uint32_t *cropWidth,
+						 uint32_t *cropHeight);
 int resize_image(
     const uint8_t *srcImage,
     int srcWidth,
@@ -44,5 +53,9 @@ int resize_image(
     int dstHeight,
     int pixel_size_B,
     bool swapRB);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif /* IMAGE_PROCESSING_H_ */

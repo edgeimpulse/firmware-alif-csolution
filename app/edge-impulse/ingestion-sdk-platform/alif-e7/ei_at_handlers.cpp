@@ -40,6 +40,11 @@
 #include "edge-impulse-sdk/porting/ei_classifier_porting.h"
 #include "peripheral/ei_uart.h"
 #include "inference/ei_run_impulse.h"
+#include "lcd_task.h"
+
+#include "FreeRTOS.h"
+#include "event_groups.h"
+#include "common_events.h"
 
 EiDeviceAlif *pei_device;
 
@@ -251,7 +256,6 @@ static bool at_run_nn_normal(void)
     ei_start_impulse(false, false, false);
 
     return (is_inference_running());
-    return true;
 }
 
 /**
@@ -437,6 +441,8 @@ static bool at_set_upload_settings(const char **argv, const int argc)
  */
 static bool at_sample_start(const char **argv, const int argc)
 {
+    EventBits_t event_bit;    
+
     if(argc < 1) {
         ei_printf("Missing sensor name!\n");
         return true;
@@ -444,6 +450,21 @@ static bool at_sample_start(const char **argv, const int argc)
 
     const ei_device_sensor_t *sensor_list;
     size_t sensor_list_size;
+
+#if (defined(LCD_SUPPORTED) && (LCD_SUPPORTED == 1)) && (defined(EI_CLASSIFIER_SENSOR) && (EI_CLASSIFIER_SENSOR == EI_CLASSIFIER_SENSOR_CAMERA))
+    bool camera_task_was_running = false;
+    if (camera_task_is_running()) {
+        camera_task_was_running = true;
+        // stop LCD if was running
+        xEventGroupSetBits(common_event_group, EVENT_STOP_LCD);
+
+        event_bit = xEventGroupWaitBits(common_event_group, 
+            EVENT_STOP_CAMERA,    //  uxBitsToWaitFor 
+            pdTRUE,                 //  xClearOnExit
+            pdFALSE,                //  xWaitForAllBits
+            portMAX_DELAY);
+    }
+#endif
 
     pei_device->get_sensor_list((const ei_device_sensor_t **)&sensor_list, &sensor_list_size);
 
@@ -464,6 +485,12 @@ static bool at_sample_start(const char **argv, const int argc)
     else {
         ei_printf("ERR: Failed to find sensor '%s' in the sensor list\n", argv[0]);
     }
+    
+#if (defined(LCD_SUPPORTED) && (LCD_SUPPORTED == 1)) && (defined(EI_CLASSIFIER_SENSOR) && (EI_CLASSIFIER_SENSOR == EI_CLASSIFIER_SENSOR_CAMERA))
+    if (camera_task_was_running) {
+        xEventGroupSetBits(common_event_group, EVENT_START_CAMERA);
+    }
+#endif
 
     return true;
 }
@@ -615,6 +642,7 @@ static bool at_take_snapshot(const char **argv, const int argc)
     uint16_t width;
     uint16_t height;
     bool use_max_baudrate = false;
+    EventBits_t event_bit;    
 
     EiAlifCamera *cam = static_cast<EiAlifCamera*>(EiCamera::get_camera());
 
@@ -634,9 +662,30 @@ static bool at_take_snapshot(const char **argv, const int argc)
         use_max_baudrate = true;
     }
 
+#if (defined(LCD_SUPPORTED) && (LCD_SUPPORTED == 1)) && (defined(EI_CLASSIFIER_SENSOR) && (EI_CLASSIFIER_SENSOR == EI_CLASSIFIER_SENSOR_CAMERA))
+    bool camera_task_was_running = false;
+    if (camera_task_is_running()) {
+        camera_task_was_running = true;
+        // stop LCD if was running
+        xEventGroupSetBits(common_event_group, EVENT_STOP_LCD);
+
+        event_bit = xEventGroupWaitBits(common_event_group, 
+            EVENT_STOP_CAMERA,    //  uxBitsToWaitFor 
+            pdTRUE,                 //  xClearOnExit
+            pdFALSE,                //  xWaitForAllBits
+            portMAX_DELAY);
+    }
+#endif
+
     if (ei_camera_take_snapshot_output_on_serial(width, height, use_max_baudrate) == false) {
         ei_printf("ERR: Failed to take snapshot!\r\n");
     }
+
+#if (defined(LCD_SUPPORTED) && (LCD_SUPPORTED == 1)) && (defined(EI_CLASSIFIER_SENSOR) && (EI_CLASSIFIER_SENSOR == EI_CLASSIFIER_SENSOR_CAMERA))
+    if (camera_task_was_running) {
+        xEventGroupSetBits(common_event_group, EVENT_START_CAMERA);
+    }
+#endif
 
     return true;
 }
@@ -652,6 +701,7 @@ static bool at_snapshot_stream(const char **argv, const int argc)
     uint32_t width, height;
     bool use_max_baudrate = false;
     EiAlifCamera *cam = static_cast<EiAlifCamera*>(EiCamera::get_camera());
+    EventBits_t event_bit;
 
     if (cam->is_camera_present() == false) {
         ei_printf("ERR: camera is missing!\n");
@@ -671,6 +721,21 @@ static bool at_snapshot_stream(const char **argv, const int argc)
         use_max_baudrate = true;
     }
 
+#if (defined(LCD_SUPPORTED) && (LCD_SUPPORTED == 1)) && (defined(EI_CLASSIFIER_SENSOR) && (EI_CLASSIFIER_SENSOR == EI_CLASSIFIER_SENSOR_CAMERA))
+    bool camera_task_was_running = false;
+    if (camera_task_is_running()) {
+        camera_task_was_running = true;
+        // stop LCD if was running
+        xEventGroupSetBits(common_event_group, EVENT_STOP_LCD);
+
+        event_bit = xEventGroupWaitBits(common_event_group, 
+            EVENT_STOP_CAMERA,    //  uxBitsToWaitFor 
+            pdTRUE,                 //  xClearOnExit
+            pdFALSE,                //  xWaitForAllBits
+            portMAX_DELAY);
+    }
+#endif
+
     // start stream
     if (ei_camera_start_snapshot_stream(width, height, use_max_baudrate) == false) {
         return true;
@@ -680,6 +745,12 @@ static bool at_snapshot_stream(const char **argv, const int argc)
     ei_printf("OK\n");
 
     ei_flush_rx_buffer();
+
+#if (defined(LCD_SUPPORTED) && (LCD_SUPPORTED == 1)) && (defined(EI_CLASSIFIER_SENSOR) && (EI_CLASSIFIER_SENSOR == EI_CLASSIFIER_SENSOR_CAMERA))
+    if (camera_task_was_running) {
+        xEventGroupSetBits(common_event_group, EVENT_START_CAMERA);
+    }
+#endif
 
     // we do not print a new prompt!
     return true;

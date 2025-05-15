@@ -32,33 +32,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _EI_CAMERA_H_
-#define _EI_CAMERA_H_
+#ifndef COMMON_EVENTS_H_
+#define COMMON_EVENTS_H_
 
-#include "firmware-sdk/ei_camera_interface.h"
-#include "firmware-sdk/ei_device_info_lib.h"
+#include "FreeRTOS.h"
+#include "event_groups.h"
 
-class EiAlifCamera : public EiCamera
-{
-private:
-    static ei_device_snapshot_resolutions_t resolutions[];
+extern EventGroupHandle_t common_event_group;
 
-    bool camera_found;
-    uint16_t width;
-    uint16_t height;
+#define EVENT_RX_READY                  (1 << 0)
+#define EVENT_TX_DONE                   (1 << 1)
+#define EVENT_TX_EMPTY                  (1 << 2)
+#define EVENT_STOP_LCD                  (1 << 3)
+#define EVENT_START_LCD                 (1 << 4)
+#define EVENT_STOP_CAMERA               (1 << 5)
+#define EVENT_START_CAMERA              (1 << 6)
+#define EVENT_STOP_INFERENCE            (1 << 7)
 
-public:
-    bool is_camera_present(void) {return camera_found;};
-    bool init(uint16_t width, uint16_t height) override;
-    bool deinit(void) override; 
-    void get_resolutions(ei_device_snapshot_resolutions_t **res, uint8_t *res_num) override;
-    bool set_resolution(const ei_device_snapshot_resolutions_t res) override;
-    ei_device_snapshot_resolutions_t get_min_resolution(void) override;
-    ei_device_snapshot_resolutions_t search_resolution(uint32_t required_width, uint32_t required_height) override;
-
-    bool ei_camera_capture_rgb888_packed_big_endian(
-        uint8_t *image,
-        uint32_t image_size) override;
-};
-
-#endif
+#endif /* COMMON_EVENTS_H_ */

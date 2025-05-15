@@ -8,11 +8,16 @@ The required software setup consists of VSCode, Git, CMake, cmsis-toolbox, Arm G
 Please refer to the [Getting Started Guide](https://alifsemi.com/download/AUGD0012) for more details.
 
 > [!Note]
-> The firmware by default uses the MT9M114 camera sensor, if you have ARX3A0 camera, modify the [firmware-alif.cproject.yaml](firmware-alif.cproject.yaml)
+> The firmware by default uses the MT9M114 camera sensor, if you have ARX3A0 camera, modify the [firmware-alif.cproject.yaml](firmware-alif.cproject.yml)
 > ```
 > # - component: AlifSemiconductor::BSP:External peripherals:CAMERA Sensor MT9M114
 > - component: AlifSemiconductor::BSP:External peripherals:CAMERA Sensor ARX3A0
 > ```
+> and the`RTE_Device.h` header for the selected device
+> ```
+> #define RTE_ARX3A0_CAMERA_SENSOR_CSI_ENABLE             1
+> ```
+
 
 ## Prerequisites
 1. Create an edge impulse account at [edgeimpulse.com](https://www.edgeimpulse.com/)
@@ -21,11 +26,7 @@ Please refer to the [Getting Started Guide](https://alifsemi.com/download/AUGD00
     * Navigate to the [Alif Semiconductor Kit documentation](https://alifsemi.com/kits) page (you will need to register to create an account or log in). and download the latest `App Security Toolkit`.
     * Extract archive where you prefer and create an envirionmental variable `SETOOLS_ROOT` pointing to it.
     * Follow the instructions in local the `Alif Security Toolkit Quickstart Guide` to finalize the installation.
-3. Clone this repo and intitialize the submodules:
-```
-git submodule init
-git submodule update
-```
+3. Clone this repo
 
 ### When using `build.sh` on macOS
 Building the Alif project requires `nproc` to limit the number of processors used. On macOS, this command is not available. Here you should either install `coreutils` using brew:
