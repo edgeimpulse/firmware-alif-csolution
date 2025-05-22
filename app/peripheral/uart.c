@@ -164,9 +164,11 @@ void ei_uart_send(char* buf, unsigned int len)
             return;
         }
 
-        while ( (event_flags_uart & ARM_USART_EVENT_SEND_COMPLETE) == 0) {
-            __WFE();
-        }
+        xEventGroupWaitBits(common_event_group, 
+                                        EVENT_TX_DONE,    //  uxBitsToWaitFor 
+                                        pdTRUE,                 //  xClearOnExit
+                                        pdFALSE,                //  xWaitForAllBits
+                                        portMAX_DELAY);
     }
 }
 
@@ -218,6 +220,7 @@ static void ei_uart_callback(uint32_t event)
     if (event & ARM_USART_EVENT_SEND_COMPLETE) {
         /* Send Success */
         event_flags_uart |= UART_CB_TX_EVENT;
+        xEventGroupSetBitsFromISR(common_event_group, EVENT_TX_DONE, &xHigherPriorityTaskWoken);
     }
 
     if (event & ARM_USART_EVENT_RECEIVE_COMPLETE) {

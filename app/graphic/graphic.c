@@ -433,8 +433,24 @@ void display_camera_screen(uint8_t* cam_buff, uint16_t cam_witdh, uint16_t cam_h
         .height = cam_heigth,
         .format = AIPL_COLOR_RGB565
     };
-    
+
+// Rotate image 180 on AppKit (Camera connected to the connector on the other side than the display)
+#if (BOARD_ALIF_DEVKIT_VARIANT == 5)
+    aipl_image_t rot_image = {0};
+    aipl_error_t aipl_ret = aipl_image_create(&rot_image, cam_image.width, cam_image.width, cam_image.height, cam_image.format);
+
+    aipl_ret = aipl_rotate_img(&cam_image, &rot_image, AIPL_ROTATE_180);
+    if (aipl_ret != AIPL_ERR_OK) {        
+        __BKPT(0);
+    }
+    memcpy(cam_image.data, rot_image.data, cam_witdh * cam_heigth * 2);
+
     aipl_image_draw(0, LOGO_OFFSET_Y, &cam_image);
+    aipl_image_destroy(&rot_image);
+    
+#else
+    aipl_image_draw(0, LOGO_OFFSET_Y, &cam_image);
+#endif
 }
 
 /**
