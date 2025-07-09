@@ -50,7 +50,7 @@ fi
 
 echo "make: using ${MAKE_JOB} jobs"
 
-if [ "$TARGET" == "HE" ] || [ "$TARGET" == "HP" ] || [ "$TARGET" == "HP_SRAM" ] || [ "$TARGET" == "HE_DEVKIT" ] || [ "$TARGET" == "HP_DEVKIT" ] || [ "$TARGET" == "HP_SRAM_DEVKIT" ]; then
+if [ "$TARGET" == "HE" ] || [ "$TARGET" == "HP" ] || [ "$TARGET" == "HP_SRAM" ] || [ "$TARGET" == "HE_DEVKIT" ] || [ "$TARGET" == "HP_DEVKIT" ] || [ "$TARGET" == "HP_SRAM_DEVKIT" ] || [ "$TARGET" == "E1C" ]; then
     echo "Building firmware for ${TARGET}"
     cbuild ./firmware-alif.csolution.yml -j ${MAKE_JOBS:-$(nproc)} --context-set --update-rte --packs --context firmware-alif.${BUILD_CONFIG}+${TARGET} --toolchain GCC
 else

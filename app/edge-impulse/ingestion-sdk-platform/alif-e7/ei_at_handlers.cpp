@@ -41,10 +41,14 @@
 #include "peripheral/ei_uart.h"
 #include "inference/ei_run_impulse.h"
 #include "lcd_task.h"
+#include <cmath>
+#include "at_base64_lib.h"
+#include "peripheral/ei_uart.h"
 
 #include "FreeRTOS.h"
 #include "event_groups.h"
 #include "common_events.h"
+#include "board.h"
 
 EiDeviceAlif *pei_device;
 
@@ -74,10 +78,13 @@ static bool at_get_mgmt_settings(void);
 static bool at_set_mgmt_settings(const char **argv, const int argc);
 
 static bool at_get_snapshot(void);
+#if !defined (BOARD_IS_ALIF_DEVKIT_E1C_VARIANT) // not E1C
 static bool at_take_snapshot(const char **argv, const int argc);
 static bool at_snapshot_stream(const char **argv, const int argc);
+#endif
 
 static inline bool check_args_num(const int &required, const int &received);
+static bool local_read_encode_send_sample_buffer(size_t address, size_t length);
 
 /* Public function definition */
 /**
@@ -103,8 +110,12 @@ ATServer *ei_at_init(EiDeviceAlif *ei_device)
     at->register_command(AT_UPLOADSETTINGS, AT_UPLOADSETTINGS_HELP_TEXT, nullptr, at_get_upload_settings, at_set_upload_settings, AT_UPLOADSETTINGS_ARGS);
     at->register_command(AT_UNLINKFILE, AT_UNLINKFILE_HELP_TEXT, nullptr, nullptr, at_unlink_file, AT_UNLINKFILE_ARGS);
     at->register_command(AT_UPLOADHOST, AT_UPLOADHOST_HELP_TEXT, nullptr, at_get_upload_host, at_set_upload_host, AT_UPLOADHOST_ARGS);
+#if !defined (BOARD_IS_ALIF_DEVKIT_E1C_VARIANT) // not E1C
     at->register_command(AT_SNAPSHOT, AT_SNAPSHOT_HELP_TEXT, nullptr, at_get_snapshot, at_take_snapshot, AT_SNAPSHOT_ARGS);
     at->register_command(AT_SNAPSHOTSTREAM, AT_SNAPSHOTSTREAM_HELP_TEXT, nullptr, nullptr, at_snapshot_stream, AT_SNAPSHOTSTREAM_ARGS);
+#else
+    at->register_command(AT_SNAPSHOT, AT_SNAPSHOT_HELP_TEXT, nullptr, at_get_snapshot, nullptr, AT_SNAPSHOT_ARGS);
+#endif
 
     return at;
 }
@@ -322,7 +333,7 @@ static bool at_read_buffer(const char **argv, const int argc)
             ei_sleep(100);
         }
 
-        success = read_encode_send_sample_buffer(start, length);
+        success = local_read_encode_send_sample_buffer(start, length);
 
         if (use_max_baudrate) {
             ei_printf("\r\nOK\r\n");
@@ -630,7 +641,7 @@ static bool at_get_snapshot(void)
 
     return true;
 }
-
+#if !defined (BOARD_IS_ALIF_DEVKIT_E1C_VARIANT) // not E1C
 /**
  *
  * @param argv
@@ -755,6 +766,7 @@ static bool at_snapshot_stream(const char **argv, const int argc)
     // we do not print a new prompt!
     return true;
 }
+#endif
 
 /**
  *
@@ -767,6 +779,60 @@ static inline bool check_args_num(const int &required, const int &received)
     if (received < required) {
         ei_printf("Too few arguments! Required: %d\r\n", required);
         return false;
+    }
+
+    return true;
+}
+
+/**
+ * @brief 
+ * 
+ * @param address 
+ * @param length 
+ * @return true 
+ * @return false 
+ */
+static bool local_read_encode_send_sample_buffer(size_t address, size_t length)
+{    
+    EiDeviceMemory* mem = pei_device->get_memory();    
+
+    // we are encoiding data into base64, so it needs to be divisible by 3
+    const int buffer_size = 513;
+    uint8_t* buffer = (uint8_t*)ei_malloc(buffer_size);
+
+    size_t output_size_check = floor(buffer_size / 3 * 4);
+    size_t mod = buffer_size % 3;
+    uint32_t size_out = 0;
+
+    output_size_check += mod;
+    uint8_t* buffer_out = (uint8_t*)ei_malloc(output_size_check);
+
+    while (1) {
+        size_t bytes_to_read = buffer_size;
+
+        if (bytes_to_read > length) {
+            bytes_to_read = length;
+        }
+
+        if (bytes_to_read == 0) {
+            ei_free(buffer);
+            ei_free(buffer_out);
+
+            return true;
+        }
+
+        if (mem->read_sample_data(buffer, address, bytes_to_read) != bytes_to_read) {
+            ei_free(buffer);
+            ei_free(buffer_out);
+
+            return false;
+        }
+
+        size_out = base64_encode_buffer((char *)buffer, bytes_to_read, (char *)buffer_out, output_size_check);
+        ei_uart_send((char*)buffer_out, size_out);
+
+        address += bytes_to_read;
+        length -= bytes_to_read;
     }
 
     return true;

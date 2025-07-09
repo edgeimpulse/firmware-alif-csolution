@@ -76,9 +76,16 @@ static uint8_t image_buffer[CAM_FRAME_SIZE * RGB_BYTES] __attribute__((aligned(3
 static const uint8_t *get_resize_source_buffer() { return image_buffer; }
 #endif
 
+#if defined(RTE_CPI)
 /* Camera  Driver instance 0 */
 extern ARM_DRIVER_CPI Driver_CPI;
 static ARM_DRIVER_CPI *CAMERAdrv = &Driver_CPI;
+#elif defined(RTE_LPCPI)
+extern ARM_DRIVER_CPI Driver_LPCPI;
+static ARM_DRIVER_CPI *CAMERAdrv = &Driver_LPCPI;
+#else
+#error "Camera driver not enabled"
+#endif
 
 typedef enum {
     CAM_CB_EVENT_NONE               = 0,

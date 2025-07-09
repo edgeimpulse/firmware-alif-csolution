@@ -34,7 +34,7 @@ fi
 
 echo "Flashing firmware for ${TARGET}"
 
-if [ "$TARGET" == "HE" ] || [ "$TARGET" == "HP" ] || [ "$TARGET" == "HP_SRAM" ] || [ "$TARGET" == "HE_DEVKIT" ] || [ "$TARGET" == "HP_DEVKIT" ] || [ "$TARGET" == "HP_SRAM_DEVKIT" ]; then
+if [ "$TARGET" == "HE" ] || [ "$TARGET" == "HP" ] || [ "$TARGET" == "HP_SRAM" ] || [ "$TARGET" == "HE_DEVKIT" ] || [ "$TARGET" == "HP_DEVKIT" ] || [ "$TARGET" == "HP_SRAM_DEVKIT" ] || [ "$TARGET" == "E1C" ]; then
     cp ./out/firmware-alif/${TARGET}/${BUILD_CONFIG}/firmware-alif-${TARGET}.bin $SETOOLS_ROOT/build/images/alif-img.bin
     cp ./.alif/m55-${TARGET}_cfg.json $SETOOLS_ROOT/alif-img.json
 

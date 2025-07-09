@@ -34,14 +34,14 @@
 
 #include "timer.h"
 #include "Driver_UTIMER.h"
-
-#define UTIMER_CLOCK_HZ 400000000
+#include "clk.h"
 
 /* UTIMER0 Driver instance */
 extern ARM_DRIVER_UTIMER DRIVER_UTIMER0;
 ARM_DRIVER_UTIMER *ptrUTIMER = &DRIVER_UTIMER0;
 
-#define MICROSECONDS_TO_SECONDS 1000000
+#define MICROSECONDS_TO_SECONDS (1000000)
+#define MILLISECONDS_TO_SECONDS (1000)
 
 #define US_TIMER_CHANNEL        ARM_UTIMER_CHANNEL0
 #define SENSOR_TIMER_CHANNEL    ARM_UTIMER_CHANNEL1
@@ -69,7 +69,7 @@ int timer_us_init(void)
     uint32_t count_array[2];
 
     timer_overflow_times = 0;
-    div_ratio = (UTIMER_CLOCK_HZ / MICROSECONDS_TO_SECONDS);
+    div_ratio = (GetSystemAXIClock() / MICROSECONDS_TO_SECONDS);
 
     count_array[0] = 0x00000000;   /*< initial counter value >*/
     count_array[1] = 0xFFFFFFFF;    /*< over flow count value >*/
@@ -154,7 +154,7 @@ int timer_sensor_start(uint32_t period_ms)
     sensor_interrupt = false;
 
     count_array[0] = 0x00000000;   /*< initial counter value >*/
-    count_array[1] = (period_ms * (UTIMER_CLOCK_HZ/1000));
+    count_array[1] = (period_ms * (GetSystemAXIClock()/MILLISECONDS_TO_SECONDS));
 
     ret = ptrUTIMER->Initialize (SENSOR_TIMER_CHANNEL, sensor_utimer_cb);
     if (ret != ARM_DRIVER_OK) {

@@ -38,7 +38,7 @@ int tracelib_init(const char * prefix, ARM_USART_SignalEvent_t cb_event)
         return 0;
     }
     int32_t ret    = 0;
-#if defined(M55_HE)
+#if defined(M55_HE) || defined(M55_HE_E1C)
 #if defined(CUSTOM_HE_UART)
     extern ARM_DRIVER_USART ARM_Driver_USART_(CUSTOM_HE_UART);
     USARTdrv = &ARM_Driver_USART_(CUSTOM_HE_UART);

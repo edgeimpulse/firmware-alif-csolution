@@ -45,7 +45,12 @@
 extern "C" {
 #endif
 
-#if defined(RTE_Drivers_CAMERA_SENSOR_MT9M114) && (RTE_Drivers_CAMERA_SENSOR_MT9M114 == 1)
+#if defined(RTE_Drivers_CAMERA_SENSOR_MT9M114) && (defined(RTE_Drivers_CAMERA_SENSOR_MT9M114) && (RTE_Drivers_CAMERA_SENSOR_MT9M114 == 1) == 1)
+// MT9M114
+#if defined(RTE_LPCPI) && (RTE_LPCPI == 1)
+    #define CAM_FRAME_WIDTH        (RTE_MT9M114_CAMERA_SENSOR_LPCPI_FRAME_WIDTH)
+    #define CAM_FRAME_HEIGHT       (RTE_MT9M114_CAMERA_SENSOR_LPCPI_FRAME_HEIGHT)
+#else // non lpcpi
 #if (RTE_MT9M114_CAMERA_SENSOR_MIPI_IMAGE_CONFIG == 2)
     #define CAM_FRAME_WIDTH        (1280)
     #define CAM_FRAME_HEIGHT       (720)
@@ -60,6 +65,7 @@ extern "C" {
     #define CAM_FRAME_HEIGHT       (320)
 #else
     #error "Unsupported MT9M114 configuration"
+#endif  // endif RTE_MT9M114_CAMERA_SENSOR_MIPI_IMAGE_CONFIG
 #endif
 #elif defined (RTE_Drivers_CAMERA_SENSOR_ARX3A0) && (RTE_Drivers_CAMERA_SENSOR_ARX3A0 == 1)
 #define CAM_FRAME_WIDTH        (RTE_ARX3A0_CAMERA_SENSOR_FRAME_WIDTH)

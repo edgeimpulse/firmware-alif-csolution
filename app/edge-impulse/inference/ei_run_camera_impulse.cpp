@@ -34,6 +34,10 @@
 
 #include "model-parameters/model_metadata.h"
 #if defined(EI_CLASSIFIER_SENSOR) && (EI_CLASSIFIER_SENSOR == EI_CLASSIFIER_SENSOR_CAMERA)
+#include "board.h"
+#if defined (BOARD_IS_ALIF_DEVKIT_E1C_VARIANT)
+#error "Camera not supported on Alif Devkit E1C devkit"
+#else
 #include "edge-impulse-sdk/classifier/ei_run_classifier.h"
 #include "edge-impulse-sdk/dsp/image/image.hpp"
 #include "firmware-sdk/ei_camera_interface.h"
@@ -408,5 +412,5 @@ void ei_run_stream_impulse(uint8_t* pbuffer, uint16_t width, uint16_t height, ei
     }
 }
 #endif  /* #if (defined(LCD_SUPPORTED) && (LCD_SUPPORTED == 1)) && (defined(EI_CLASSIFIER_SENSOR) && (EI_CLASSIFIER_SENSOR == EI_CLASSIFIER_SENSOR_CAMERA)) */
-
+#endif  /* defined (BOARD_IS_ALIF_DEVKIT_E1C_VARIANT) */
 #endif /* defined(EI_CLASSIFIER_SENSOR) && EI_CLASSIFIER_SENSOR == EI_CLASSIFIER_SENSOR_CAMERA */

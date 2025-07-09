@@ -45,7 +45,7 @@
 #include "common_events.h"
 
 // heap memory
-#if configAPPLICATION_ALLOCATED_HEAP == 1
+#if (configAPPLICATION_ALLOCATED_HEAP == 1)
 uint8_t ucHeap[ configTOTAL_HEAP_SIZE ] __attribute__((aligned(32), section(".bss.local_heap")));
 #endif
 

@@ -34,6 +34,9 @@
 
 #include "ei_microphone.h"
 
+#include "FreeRTOS.h"
+#include "event_groups.h"
+
 #include "RTE_Components.h"
 #include "RTE_Device.h"
 #include "ei_classifier_porting.h"
@@ -54,6 +57,8 @@
 extern ARM_DRIVER_SAI ARM_Driver_SAI_(I2S_ADC);
 ARM_DRIVER_SAI*       s_i2s_drv;
 
+static EventGroupHandle_t mic_event;
+
 static bool create_header(sensor_aq_payload_info *payload);
 static size_t ei_write(const void*, size_t size, size_t count, EI_SENSOR_AQ_STREAM*);
 static int ei_seek(EI_SENSOR_AQ_STREAM*, long int offset, int origin);
@@ -70,19 +75,33 @@ static bool ei_microphone_stop(void);
 
 /* Private variables ------------------------------------------------------- */
 #define SAMPLING_RATE               (16000u)
-#define SAMPLE_SIZE_IN_MS           (50u)
+
+#define SAMPLE_SIZE_IN_MS           (100u)
 #define MIC_SAMPLE_SIZE_MONO        (SAMPLING_RATE / (SAMPLE_SIZE_IN_MS * 2))
-#define MIC_SAMPLE_SIZE_STEREO      (MIC_SAMPLE_SIZE_MONO * 2)                  /* 50 ms - stereo */
+//#define MIC_SAMPLE_SIZE_STEREO      (MIC_SAMPLE_SIZE_MONO * 2)                  /* 50 ms - stereo */
+
+
+//#define AUDIO_REC_SAMPLES           (512)
+#define AUDIO_REC_SAMPLES           MIC_SAMPLE_SIZE_MONO
+#define MIC_EVENT_RX_DONE           ARM_SAI_EVENT_RECEIVE_COMPLETE
+#define MIC_EVENT_RX_OVERFLOW       ARM_SAI_EVENT_RX_OVERFLOW
+#define MIC_EVENT_ERROR             ARM_SAI_EVENT_FRAME_ERROR
+
+#define MAX_AUDIO_CHANNELS          (2)
 
 static bool record_ready = false;
 static bool is_recording = false;
 static uint8_t n_audio_channels = 2;
 static uint32_t cbor_current_sample;
 
-static int16_t mic_buffer[MIC_SAMPLE_SIZE_STEREO] __attribute__((aligned(32), section(".bss.mic_buffer")));
+// temp buffer to store
+static int16_t mic_buffer[AUDIO_REC_SAMPLES * MAX_AUDIO_CHANNELS * 2] __attribute__((aligned(32), section(".bss.mic_buffer")));
 
-static volatile bool rx_event;
-static volatile bool rx_overflow_event;
+// recording buffer
+static int audio_current_rec_buf = 0;
+static int32_t mic_rec[2][AUDIO_REC_SAMPLES * MAX_AUDIO_CHANNELS] __attribute__((aligned(32), section(".bss.audio_buffer")));
+
+static uint32_t ei_mic_get_int16_from_buffer(int32_t* src, int16_t* dst, uint32_t element);
 
 /** Status and control struct for inferencing struct */
 typedef struct {
@@ -141,6 +160,8 @@ int ei_microphone_init(void)
         s_i2s_drv->Uninitialize();
         return false;
     }
+
+    mic_event = xEventGroupCreate();
 
     return true;
 }
@@ -222,18 +243,15 @@ static bool ei_microphone_sample_start(void)
     }
 
     // start
-    rx_event = false;
-    rx_overflow_event = false;
-
     ei_printf("Sampling...\r\n");
-    is_recording = true;    
-    
+    is_recording = true;
+    audio_current_rec_buf = 0;
     record_ready = false;
     dev->set_state(eiStateSampling);
 
+    ei_microphone_start();
+
     while (record_ready == false) {
-        ei_microphone_start();
-        __WFI();
         ei_mic_thread(audio_buffer_callback);        
     };
 
@@ -253,9 +271,9 @@ static bool ei_microphone_sample_start(void)
         return false;
     }
 
-    ei_printf("Done sampling, total bytes collected: %lu\n", (current_sample * 2));
+    ei_printf("Done sampling, total bytes collected: %u\n", (current_sample * 2));
     ei_printf("[1/1] Uploading file to Edge Impulse...\n");
-    ei_printf("Not uploading file, not connected to WiFi. Used buffer, from=0, to=%lu.\n", (cbor_current_sample + 1 + headerOffset));
+    ei_printf("Not uploading file, not connected to WiFi. Used buffer, from=0, to=%u.\n", (cbor_current_sample + 1 + headerOffset));
     ei_printf("OK\n");
 
     return true;
@@ -272,6 +290,11 @@ static bool ei_microphone_sample_start(void)
 bool ei_microphone_inference_start(uint32_t n_samples, uint8_t n_channels_inference, uint32_t freq)
 {
     int32_t status = 0;
+
+    if (freq != SAMPLING_RATE) {
+        ei_printf("Sample rate not supported: %d, expected %d\r\n", freq, SAMPLING_RATE);
+        return false;
+    }
 
     if (n_channels_inference > 2) {
         ei_printf("Wrong number of channels\r\n");
@@ -298,7 +321,10 @@ bool ei_microphone_inference_start(uint32_t n_samples, uint8_t n_channels_infere
     inference.n_samples = n_samples;    // this represents the number of samples per channel
     inference.buf_ready = 0;
 
+    audio_current_rec_buf = 0;
+
     ei_microphone_init_channels();
+
     return true;
 }
 
@@ -362,12 +388,11 @@ int ei_microphone_audio_signal_get_data(size_t offset, size_t length, float *out
  */
 static void I2SCallback(uint32_t event)
 {
-    if (event & ARM_SAI_EVENT_RECEIVE_COMPLETE) {
-        rx_event = true;
-    }
-    else if (event & ARM_SAI_EVENT_RX_OVERFLOW) {
-        rx_overflow_event = true;
-    }
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+    xEventGroupSetBitsFromISR(mic_event, event, &xHigherPriorityTaskWoken);
+
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 /**
@@ -378,10 +403,16 @@ static void I2SCallback(uint32_t event)
  */
 void ei_mic_inference_samples_callback(void *buffer, uint32_t sample_count)
 {
-    int16_t *samples = (int16_t *)buffer;
+    int16_t *sbuffer = mic_buffer;
+    uint32_t sbuf_ptr = 0;
 
-    for (uint32_t i = 0; i < (sample_count >> 1); i++) {
-        inference.buffers[inference.buf_select][inference.buf_count++] = samples[i];
+    sample_count /= n_audio_channels; // number of samples per channel
+    uint32_t n_bytes = (sample_count * 2);   // in bytes after conversion to int16_t from original size of int32_t
+
+    ei_mic_get_int16_from_buffer((int32_t*)buffer, sbuffer, sample_count);
+
+    for (uint32_t i = 0; i < sample_count; i++) {
+        inference.buffers[inference.buf_select][inference.buf_count++] = sbuffer[i];
 
         if (inference.buf_count >= (inference.n_samples * n_audio_channels)) {  // n_samples is per channel
 
@@ -395,20 +426,35 @@ void ei_mic_inference_samples_callback(void *buffer, uint32_t sample_count)
 /**
  * @brief 
  * 
- * @param buffer 
- * @param n_samples The number of bytes collected
+ * @param in_buffer 
+ * @param n_samples The number of samples collected
  */
-static void audio_buffer_callback(void *buffer, uint32_t n_bytes)
+static void audio_buffer_callback(void *in_buffer, uint32_t n_samples)
 {
     EiDeviceMemory *mem = EiDeviceInfo::get_device()->get_memory();
-    int16_t *sbuffer = (int16_t *)buffer;
+    int16_t *sbuffer = mic_buffer;
     uint32_t sbuf_ptr = 0;
-    uint32_t n_samples = n_bytes / 2;
 
+    n_samples /= n_audio_channels; // number of samples per channel
+    uint32_t n_bytes = (n_samples * 2);   // in bytes after conversion to int16_t from original size of int32_t
+
+    // check if we should start recording again or we finished
+    current_sample += n_samples;
+
+    if (current_sample >= samples_required) {
+        record_ready = true;
+        is_recording = false;
+    }
+    else {
+        audio_current_rec_buf = !audio_current_rec_buf;
+        ei_microphone_start();  // start the next recording
+    }
+    
+    ei_mic_get_int16_from_buffer((int32_t*)in_buffer, sbuffer, n_samples);
+    
     /* Calculate the cbor buffer length: header + 3 bytes per audio channel */
-    uint32_t cbor_length = n_samples + ((n_samples + n_bytes) * n_audio_channels);    
+    uint32_t cbor_length = n_samples + ((n_bytes + n_samples) * n_audio_channels);    
     uint8_t *cbor_buf = (uint8_t *)ei_malloc(cbor_length);
-
 
     if (cbor_buf == NULL) {
         record_ready = true;
@@ -426,19 +472,13 @@ static void audio_buffer_callback(void *buffer, uint32_t n_bytes)
         }
         sbuf_ptr += n_audio_channels;
     }
+    
 
     mem->write_sample_data((uint8_t*)cbor_buf, headerOffset + cbor_current_sample, cbor_length);
 
     ei_free(cbor_buf);
 
-    cbor_current_sample += cbor_length;
-    current_sample += n_samples;
-
-    if (current_sample >= samples_required) {
-        record_ready = true;
-        is_recording = false;
-    }
-
+    cbor_current_sample += cbor_length; 
 }
 
 /**
@@ -485,15 +525,10 @@ static int ei_seek(EI_SENSOR_AQ_STREAM* stream, long int offset, int origin)
 static bool ei_microphone_start(void)
 {
     int32_t status = 0;
-
-    memset(mic_buffer, 0, sizeof(mic_buffer));
-
-    rx_event = false;
-    rx_overflow_event = false;
-    /* Receive data */
-    status = s_i2s_drv->Receive(mic_buffer, (MIC_SAMPLE_SIZE_MONO * n_audio_channels)); // Number of samples times number of channels
-    if (status) {
-        //ei_printf("ERR: I2S Receive status = %d\n", status);
+    
+    /* receive data */
+    status = s_i2s_drv->Receive(mic_rec[audio_current_rec_buf], (AUDIO_REC_SAMPLES * n_audio_channels)); // Number of samples times number of channels
+    if (status) {        
         return false;
     }
 
@@ -521,7 +556,7 @@ static bool ei_microphone_stop(void)
 {
     int32_t status = 0;
     
-    /* Receive data */
+    /* Stop mic */
     status = s_i2s_drv->Control(ARM_SAI_CONTROL_RX, 0, 0);
     if (status) {
         ei_printf("ERR: I2S Control status = %d\n", status);
@@ -587,14 +622,25 @@ static bool create_header(sensor_aq_payload_info *payload)
  */
 void ei_mic_thread(void (*callback)(void *buffer, uint32_t n_bytes))
 {
-    if (rx_event) {
-        rx_event = false;
-        callback(mic_buffer, (MIC_SAMPLE_SIZE_MONO * 2));   // in bytes !
+    EventBits_t event_bit;
+
+    event_bit = xEventGroupWaitBits(mic_event, 
+        MIC_EVENT_RX_DONE | MIC_EVENT_RX_OVERFLOW | MIC_EVENT_ERROR,    //  uxBitsToWaitFor 
+        pdTRUE,                 //  xClearOnExit
+        pdFALSE,                //  xWaitForAllBits
+        portMAX_DELAY);
+    
+    if (event_bit & MIC_EVENT_RX_DONE) {
+        callback(mic_rec[audio_current_rec_buf], (AUDIO_REC_SAMPLES * n_audio_channels));   // in bytes !
     }
-    else if (rx_overflow_event == true) {
-        rx_overflow_event = false;
+    if (event_bit & MIC_EVENT_RX_OVERFLOW) {
         ei_printf("I2S RX Overflow\n");
     }
+
+    if (event_bit & MIC_EVENT_ERROR) {
+        ei_printf("I2S Error\n");
+    }
+    
 }
 
 /**
@@ -655,17 +701,13 @@ static void write_value_to_cbor_buffer(uint8_t *buf, int16_t value)
 static bool ei_microphone_init_channels(void)
 {
     int32_t status = 0;
-    constexpr uint32_t wlen = 16;
+    constexpr uint32_t wlen = 32;
 
     /* Configure I2S Receiver to Asynchronous Master */
     status = s_i2s_drv->Control(ARM_SAI_CONFIGURE_RX | ARM_SAI_MODE_MASTER | ARM_SAI_ASYNCHRONOUS |
                                 ARM_SAI_PROTOCOL_I2S | ARM_SAI_DATA_SIZE(wlen) | ((n_audio_channels == 1) << 19) ,
                                 (wlen * 2),
-#if (BOARD_ALIF_DEVKIT_VARIANT == 5)
-                                SAMPLING_RATE);
-#else
                                (SAMPLING_RATE*n_audio_channels));
-#endif
 
     if (status) {
         ei_printf("I2S Control status = %d\n", status);
@@ -677,4 +719,17 @@ static bool ei_microphone_init_channels(void)
     status = s_i2s_drv->Control(ARM_SAI_CONTROL_RX, 1, 0); // Added here to keep recording going
 
     return (status == 0);
+}
+
+/**
+ * 
+ */
+static uint32_t ei_mic_get_int16_from_buffer(int32_t* src, int16_t* dst, uint32_t element)
+{
+    // mic_buffer
+    for (uint32_t i = 0; i < element; i++) {
+        dst[i] = (int16_t)(src[i] >> 16);    /* shift */
+    }
+
+    return 0;
 }

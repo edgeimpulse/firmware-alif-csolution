@@ -86,27 +86,45 @@ static void ei_main_task(void *pvParameters)
     bool in_rx_loop = false;
     EventBits_t event_bit;
 
+#if (defined BOARD_IS_ALIF_DEVKIT_E1C_VARIANT)
+    ei_printf("Edge Impulse SDK - Alif Ensamble E1C devkit\r\n");
+#elif defined (BOARD_IS_ALIF_APPKIT_B1_VARIANT)
 #if defined (CORE_M55_HE)
-    ei_printf("Edge Impulse SDK - Alif Ensamble E7 HE core\r\n");
+    ei_printf("Edge Impulse SDK - Alif Ensamble AI/ML Appkit E7 HE core\r\n");
 #else
-    ei_printf("Edge Impulse SDK - Alif Ensamble E7 HP core\r\n");
+    ei_printf("Edge Impulse SDK - Alif Ensamble AI/ML Appkit E7 HP core\r\n");
 #endif
+#elif defined (BOARD_IS_ALIF_DEVKIT_B0_VARIANT)
+#if defined (CORE_M55_HE)
+    ei_printf("Edge Impulse SDK - Alif Ensamble Devkit E7 HE core\r\n");
+#else
+    ei_printf("Edge Impulse SDK - Alif Ensamble Devkit E7 HP core\r\n");
+#endif
+#else   // unkown board
+#if defined (CORE_M55_HE)
+    ei_printf("Edge Impulse SDK - Alif Ensamble HE core\r\n");
+#else
+    ei_printf("Edge Impulse SDK - Alif Ensamble HP core\r\n");
+#endif
+#endif
+
     ei_printf("Type AT+HELP to see a list of commands.\r\n");
     ei_printf("Starting main loop\r\n");
 
     at = ei_at_init(dev);
     at->print_prompt();
 
+#if !defined (BOARD_IS_ALIF_DEVKIT_E1C_VARIANT) // not E1C
     dev->get_camera()->init(320, 240);
+#endif
+
     // TODO: ei_microphone_init returns an error code, should we check it?
     ei_microphone_init();
     // TODO: ei_inertial_init returns an error code, should we check it?
     ei_inertial_init();
 
 #if (defined(LCD_SUPPORTED) && (LCD_SUPPORTED == 1))
-    if (dev->get_camera()->is_camera_present()) {
-        lcd_task_start();
-    }
+    lcd_task_start();
 #endif
 
     // Event loop

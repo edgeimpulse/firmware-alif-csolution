@@ -35,6 +35,7 @@
 #include "ei_camera.h"
 #include "ei_classifier_porting.h"
 #include "peripheral/camera/camera.h"
+#include "board.h"
 
 ei_device_snapshot_resolutions_t EiAlifCamera::resolutions[] = {
         {96, 96},

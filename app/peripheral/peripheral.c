@@ -61,11 +61,16 @@ void peripheral_init(void)
     BOARD_Pinmux_Init();
 
     BOARD_LED1_Control(BOARD_LED_STATE_LOW);
-    BOARD_LED2_Control(BOARD_LED_STATE_LOW);
 
+#if !defined (BOARD_IS_ALIF_DEVKIT_E1C_VARIANT)
+    BOARD_LED2_Control(BOARD_LED_STATE_LOW);
+#endif
+
+#if !defined (BOARD_IS_ALIF_DEVKIT_E1C_VARIANT)
     /* Enable MIPI power. TODO: To be changed to aiPM call */
     enable_mipi_dphy_power();
     disable_mipi_dphy_isolation();
+#endif
 
     /* Initialize the SE services */
     se_services_port_init();
@@ -73,17 +78,23 @@ void peripheral_init(void)
     if (clock_init() != 0) {
 
         BOARD_LED1_Control(BOARD_LED_STATE_HIGH);
+#if !defined (BOARD_IS_ALIF_DEVKIT_E1C_VARIANT)
         BOARD_LED2_Control(BOARD_LED_STATE_HIGH);
-
+#endif
         while(1);
     }
 
     if (ei_uart_init(115200) != 0) {
         BOARD_LED1_Control(BOARD_LED_STATE_HIGH);
+#if !defined (BOARD_IS_ALIF_DEVKIT_E1C_VARIANT)
         BOARD_LED2_Control(BOARD_LED_STATE_HIGH);
-        
+#endif
         while(1);
     }
+
+    ei_uart_init(115200);    
+
+    //clk_init(); // for time.h clock()
 
     timer_us_init();
 }

@@ -55,21 +55,28 @@ static volatile uint16_t rx_index;
 static uint16_t idx_read;
 static volatile bool g_uart_rx_completed;
 
-#if (defined BOARD_IS_ALIF_APPKIT_B1_VARIANT)
-extern ARM_DRIVER_USART ARM_Driver_USART_(BOARD_UART1_INSTANCE);
 /* UART Driver instance */
-static ARM_DRIVER_USART *USARTdrv = &ARM_Driver_USART_(BOARD_UART1_INSTANCE);
-const IRQn_Type uart_irq_nr = UART2_IRQ_IRQn;
+#if (defined BOARD_IS_ALIF_APPKIT_B1_VARIANT)
+    #define UART_ISTANCE      BOARD_UART1_INSTANCE
+    const IRQn_Type uart_irq_nr = UART2_IRQ_IRQn;
 
 #elif (defined BOARD_IS_ALIF_DEVKIT_B0_VARIANT)
-extern ARM_DRIVER_USART ARM_Driver_USART_(BOARD_UART2_INSTANCE);
-/* UART Driver instance */
-static ARM_DRIVER_USART *USARTdrv = &ARM_Driver_USART_(BOARD_UART2_INSTANCE);
-const IRQn_Type uart_irq_nr = UART4_IRQ_IRQn;
+    #define UART_ISTANCE      BOARD_UART2_INSTANCE
+    const IRQn_Type uart_irq_nr = UART4_IRQ_IRQn;
 
+#elif defined(BOARD_IS_ALIF_DEVKIT_E1C_VARIANT)
+    #define UART_ISTANCE      BOARD_UART1_INSTANCE
+    const IRQn_Type uart_irq_nr = UART2_IRQ_IRQn;
 #else
-#error "Unsupported board variant"
+    #define UART_ISTANCE      0
+    #error "Unsupported board variant"
 #endif
+
+/* UART Driver */
+extern ARM_DRIVER_USART ARM_Driver_USART_(UART_ISTANCE);
+
+/* UART Driver instance */
+static ARM_DRIVER_USART *USARTdrv = &ARM_Driver_USART_(UART_ISTANCE);
 
 #define UART_CB_TX_EVENT          (1U << 0)
 #define UART_CB_RX_EVENT          (1U << 1)
@@ -168,7 +175,7 @@ void ei_uart_send(char* buf, unsigned int len)
                                         EVENT_TX_DONE,    //  uxBitsToWaitFor 
                                         pdTRUE,                 //  xClearOnExit
                                         pdFALSE,                //  xWaitForAllBits
-                                        portMAX_DELAY);
+                                        500 / portTICK_PERIOD_MS); // wait a maximum of 500 ms
     }
 }
 

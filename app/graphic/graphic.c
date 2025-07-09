@@ -59,6 +59,8 @@
 #include "text/text.h"
 #include <math.h>
 
+#include "board.h"
+
 #pragma pack(1)
 #if RTE_CDC200_PIXEL_FORMAT == 0    // ARGB8888
 typedef uint32_t Pixel;
@@ -435,7 +437,7 @@ void display_camera_screen(uint8_t* cam_buff, uint16_t cam_witdh, uint16_t cam_h
     };
 
 // Rotate image 180 on AppKit (Camera connected to the connector on the other side than the display)
-#if (BOARD_ALIF_DEVKIT_VARIANT == 5)
+#if defined(BOARD_IS_ALIF_APPKIT_B1_VARIANT)
     aipl_image_t rot_image = {0};
     aipl_error_t aipl_ret = aipl_image_create(&rot_image, cam_image.width, cam_image.width, cam_image.height, cam_image.format);
 

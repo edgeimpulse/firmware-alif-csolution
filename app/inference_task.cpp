@@ -87,8 +87,7 @@ void inference_task(void *pvParameters)
             EVENT_STOP_CAMERA,    //  uxBitsToWaitFor 
             pdTRUE,                 //  xClearOnExit
             pdFALSE,                //  xWaitForAllBits
-            portMAX_DELAY);
-                
+            5000/ portTICK_PERIOD_MS);
     }
     
 #endif

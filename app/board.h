@@ -18,6 +18,11 @@
 #ifndef __BOARD_LIB_H
 #define __BOARD_LIB_H
 
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 // <o> Alif Development Kit variant
 //     <0=> Alif Development Kit (Generation 1 Silicon Rev A / Board Rev B and Rev C)
 //     <1=> Alif AI/ML Application Kit (Generation 1 Silicon Rev A / Board Rev A)
@@ -25,8 +30,9 @@
 //     <3=> Alif Development Kit (Generation 2 Silicon Rev B / Internal CoB Board)
 //     <4=> Alif Development Kit (Generation 2 Silicon RevBA / Board Rev A, B, C)
 //     <5=> Alif AI/ML Application Kit (Generation 2 Silicon Rev B / Board Rev A)
+//     <6=> Alif Development Kit for E1C
 #ifndef BOARD_ALIF_DEVKIT_VARIANT
-#define BOARD_ALIF_DEVKIT_VARIANT       5
+#define BOARD_ALIF_DEVKIT_VARIANT       6
 #endif
 
 #if (BOARD_ALIF_DEVKIT_VARIANT == 0)
@@ -47,6 +53,11 @@
 #elif (BOARD_ALIF_DEVKIT_VARIANT == 5)
 #define BOARD_IS_ALIF_APPKIT_B1_VARIANT
 #include "appkit_gen2/board_defs.h"
+#elif (BOARD_ALIF_DEVKIT_VARIANT == 6)
+#define BOARD_IS_ALIF_DEVKIT_E1C_VARIANT
+#include "devkit_e1c/board_defs.h"
+#else
+#error "Unknown board variant"
 #endif
 
 // <o> ILI9806E LCD panel variant
@@ -57,15 +68,11 @@
 // <i> Default: E43RB_FW405
 #define BOARD_ILI9806E_PANEL_VARIANT    0
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
 void BOARD_Pinmux_Init();
 void BOARD_Clock_Init();
 void BOARD_Power_Init();
 
-typedef void (*BOARD_Callback_t) (long unsigned int event);
+typedef void (*BOARD_Callback_t) (uint32_t event);
 
 typedef enum {
 	BOARD_BUTTON_ENABLE_INTERRUPT = 1,  /**<BUTTON interrupt enable>*/
@@ -91,10 +98,8 @@ void BOARD_BUTTON1_GetState(BOARD_BUTTON_STATE *state);
 void BOARD_BUTTON2_GetState(BOARD_BUTTON_STATE *state);
 void BOARD_LED1_Control(BOARD_LED_STATE state);
 void BOARD_LED2_Control(BOARD_LED_STATE state);
-
-#if defined(__cplusplus)
+#ifdef __cplusplus
 }
 #endif
-
 #endif
 #endif

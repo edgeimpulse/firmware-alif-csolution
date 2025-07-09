@@ -63,17 +63,22 @@ EiDeviceAlif::EiDeviceAlif(EiDeviceMemory* mem)
     init_device_id();
     load_config();
 
+#if defined (BOARD_IS_ALIF_DEVKIT_E1C_VARIANT)
+    /* Set device type */
+    device_type = "ALIF_E1C_DEVKIT";
+#else
 #if defined (CORE_M55_HE)
-#if (BOARD_ALIF_DEVKIT_VARIANT == 5)
+#if defined (BOARD_IS_ALIF_APPKIT_B1_VARIANT)
     device_type = "ALIF_E7_APPKIT_GEN2_HE";
 #else
     device_type = "ALIF_E7_DEVKIT_GEN2_HE";
 #endif
 #else
-#if (BOARD_ALIF_DEVKIT_VARIANT == 5)
+#if defined (BOARD_IS_ALIF_APPKIT_B1_VARIANT)
     device_type = "ALIF_E7_APPKIT_GEN2_HP";
 #else
     device_type = "ALIF_E7_DEVKIT_GEN2_HP";
+#endif
 #endif
 #endif
 
@@ -88,8 +93,10 @@ EiDeviceAlif::EiDeviceAlif(EiDeviceMemory* mem)
     sensors[MICROPHONE_2CH].max_sample_length_s = 5;
     sensors[MICROPHONE_2CH].start_sampling_cb = ei_microphone_sample_start_stereo;
 
+#if !defined (BOARD_IS_ALIF_DEVKIT_E1C_VARIANT)
     /* Init camera instance */
     cam = static_cast<EiAlifCamera*>(EiCamera::get_camera());
+#endif
 }
 
 EiDeviceAlif::~EiDeviceAlif()
@@ -143,6 +150,7 @@ void EiDeviceAlif::set_default_data_output_baudrate(void)
     ei_uart_init(DEFAULT_BAUD);
 }
 
+#if ! defined (BOARD_IS_ALIF_DEVKIT_E1C_VARIANT)
 /**
  * @brief      Create resolution list for snapshot setting
  *             The studio and daemon require this list
@@ -177,6 +185,7 @@ EiSnapshotProperties EiDeviceAlif::get_snapshot_list(void)
 
     return props;
 }
+#endif
 
 bool EiDeviceAlif::get_sensor_list(const ei_device_sensor_t **p_sensor_list, size_t *sensor_list_size)
 {
@@ -194,6 +203,11 @@ bool EiDeviceAlif::get_sensor_list(const ei_device_sensor_t **p_sensor_list, siz
  */
 EiDeviceInfo* EiDeviceInfo::get_device(void)
 {
+#if defined (BOARD_IS_ALIF_DEVKIT_E1C_VARIANT)
+    const uint32_t mem_dev_size = 0x10000;
+#else
+    const uint32_t mem_dev_size = 0x40000; // 256KB
+#endif
     __attribute__((aligned(32), section(".bss.device_info")))  static EiDeviceRAM<262144, 4> memory(sizeof(EiConfig));
     static EiDeviceAlif dev(&memory);
 

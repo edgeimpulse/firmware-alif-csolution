@@ -18,7 +18,6 @@ Please refer to the [Getting Started Guide](https://alifsemi.com/download/AUGD00
 > #define RTE_ARX3A0_CAMERA_SENSOR_CSI_ENABLE             1
 > ```
 
-
 ## Prerequisites
 1. Create an edge impulse account at [edgeimpulse.com](https://www.edgeimpulse.com/)
 2. Install the latest `Alif Security Toolkit`:
@@ -27,6 +26,18 @@ Please refer to the [Getting Started Guide](https://alifsemi.com/download/AUGD00
     * Extract archive where you prefer and create an envirionmental variable `SETOOLS_ROOT` pointing to it.
     * Follow the instructions in local the `Alif Security Toolkit Quickstart Guide` to finalize the installation.
 3. Clone this repo
+
+> [!Note]
+> When switching target with different MCU, remember to run the `updateSystemPackage` from the `Alif Security Toolkit` to verify that the target is the correct one.
+
+### E1C devkit support
+If your target is the E1C devkit, you need to manually add the [Alif Ensamble DFP pack v1.3.1](https://github.com/alifsemi/alif_ensemble-cmsis-dfp/tree/v1.3-e1c-branch):
+```
+cpackget add https://github.com/alifsemi/alif_ensemble-cmsis-dfp/releases/download/v1.3.0-E1C/AlifSemiconductor.Ensemble.1.3.0-E1C.pack
+```
+
+> [!Note]
+> Please update [Alif Security Toolkit](https://alifsemi.com/support/software-tools/ensemble/) to at least (v1.104.000)
 
 ### When using `build.sh` on macOS
 Building the Alif project requires `nproc` to limit the number of processors used. On macOS, this command is not available. Here you should either install `coreutils` using brew:

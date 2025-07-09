@@ -14,7 +14,7 @@ set BUILD_CONFIG=%2
 if not defined TARGET SET TARGET="HP"
 if not defined BUILD_CONFIG SET BUILD_CONFIG="Debug"
 
-if %TARGET% NEQ "HP" and %TARGET% NEQ "HE" and %TARGET% NEQ "HP_SRAM" and %TARGET% NEQ "HP_DEVKIT" and %TARGET% NEQ "HE_DEVKIT" and %TARGET% NEQ "HP_SRAM_DEVKIT" goto INVALIDTARGET
+if %TARGET% NEQ "HP" and %TARGET% NEQ "HE" and %TARGET% NEQ "HP_SRAM" and %TARGET% NEQ "HP_DEVKIT" and %TARGET% NEQ "HE_DEVKIT" and %TARGET% NEQ "HP_SRAM_DEVKIT" and %TARGET% NEQ "E1C"goto INVALIDTARGET
 
 copy out\firmware-alif\%TARGET%\%BUILD_CONFIG%\firmware-alif-%TARGET%.bin %SETOOLS_ROOT%\build\images\alif-img.bin
 copy .alif\m55-%TARGET%_cfg.json %SETOOLS_ROOT%\alif-img.json

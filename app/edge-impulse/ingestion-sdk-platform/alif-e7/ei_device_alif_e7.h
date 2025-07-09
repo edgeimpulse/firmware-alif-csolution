@@ -38,7 +38,11 @@
 /* Include ----------------------------------------------------------------- */
 #include "firmware-sdk/ei_device_info_lib.h"
 #include "firmware-sdk/ei_device_memory.h"
+#include "board.h"
+
+#if !defined (BOARD_IS_ALIF_DEVKIT_E1C_VARIANT)
 #include "ingestion-sdk-platform/sensor/ei_camera.h"
+#endif
 
 /* Const defines ----------------------------------------------------------- */
 #define EI_DEVICE_N_RESOLUTIONS     5
@@ -57,8 +61,11 @@ private:
         MICROPHONE_2CH,    
         MAX_USED_SENSOR
     } used_sensors_t;
-    
-    EiAlifCamera *cam;    
+
+#if ! defined(BOARD_IS_ALIF_DEVKIT_E1C_VARIANT)
+    EiAlifCamera *cam;
+#endif
+
     ei_device_sensor_t sensors[MAX_USED_SENSOR];    
     EiState state;
     bool is_sampling;
@@ -71,11 +78,14 @@ public:
     EiDeviceAlif(EiDeviceMemory* mem);
     ~EiDeviceAlif();
 
-    EiAlifCamera* get_camera(void) { return cam; };    
+#if ! defined(BOARD_IS_ALIF_DEVKIT_E1C_VARIANT)
+    EiAlifCamera* get_camera(void) { return cam; }
+    EiSnapshotProperties get_snapshot_list(void) override;
+#endif
+
     void init_device_id(void) override;
     void set_default_data_output_baudrate(void) override;
-    void set_max_data_output_baudrate(void) override;
-    EiSnapshotProperties get_snapshot_list(void) override;
+    void set_max_data_output_baudrate(void);
     bool get_sensor_list(const ei_device_sensor_t **p_sensor_list, size_t *sensor_list_size) override;
     bool start_sample_thread(void (*sample_read_cb)(void), float sample_interval_ms) override;
     bool stop_sample_thread(void) override;

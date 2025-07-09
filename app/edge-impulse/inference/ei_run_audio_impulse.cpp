@@ -91,7 +91,7 @@ void ei_run_impulse(void)
                     //ei_printf("ERR: Failed to start audio sampling\r\n");
                     return;
                 }
-                __WFI();
+                
                 ei_mic_thread(ei_mic_inference_samples_callback);
             }while(ei_microphone_inference_is_recording() == true);
             
