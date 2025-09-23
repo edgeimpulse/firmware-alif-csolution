@@ -61,6 +61,10 @@ SECTIONS
     *ei_at_handlers.cpp.obj(.text* .rodata*)
     *ei_device_alif_e7.cpp.obj(.text* .rodata*)
     *ei_run_fusion_impulse.cpp.obj(.text* .rodata*)
+    *qcbor_encode.c.obj(.text* .rodata*)
+    *ei_at_server.cpp.obj(.text* .rodata*)
+    *ei_fusion.cpp.obj(.text* .rodata*)
+    *board_init.c.obj(.text* .rodata*)
 
     *libg.a:*printf*(.text* .rodata*)
     *libstdc++.a:cp-demangle.o(.text* .rodata*)
