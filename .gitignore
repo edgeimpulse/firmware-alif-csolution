@@ -1,9 +1,17 @@
 out/
-RTE/
 tmp/
+
 *.yml
 *.cprj
 .clangd
-.vscode/
+*.pack
 
-!/model/*.yml
+app/edge-impulse/firmware-sdk
+
+!.vscode/
+
+*.base@*
+
+!cdefault.yml
+!firmware-alif.cproject.yml
+!firmware-alif.csolution.yml
