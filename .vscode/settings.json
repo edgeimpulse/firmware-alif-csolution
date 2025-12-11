@@ -1,0 +1,130 @@
+{
+    "files.associations": {
+        "*.h": "c",
+        "stdexcept": "cpp",
+        "string": "cpp",
+        "variant": "c",
+        "cstring": "c",
+        "array": "c",
+        "span": "c",
+        "string_view": "c",
+        "vector": "c",
+        "__bit_reference": "cpp",
+        "__node_handle": "cpp",
+        "bitset": "cpp",
+        "deque": "cpp",
+        "__memory": "cpp",
+        "limits": "cpp",
+        "optional": "cpp",
+        "ratio": "cpp",
+        "tuple": "cpp",
+        "cstdlib": "c",
+        "locale": "c",
+        "new": "c",
+        "ostream": "c",
+        "ios": "cpp",
+        "__locale": "c",
+        "__hash_table": "cpp",
+        "__split_buffer": "cpp",
+        "__threading_support": "cpp",
+        "__tree": "cpp",
+        "__verbose_abort": "cpp",
+        "cctype": "cpp",
+        "clocale": "cpp",
+        "cmath": "cpp",
+        "complex": "cpp",
+        "cstdarg": "cpp",
+        "cstddef": "cpp",
+        "cstdint": "cpp",
+        "cstdio": "cpp",
+        "ctime": "cpp",
+        "cwchar": "cpp",
+        "cwctype": "cpp",
+        "execution": "cpp",
+        "memory": "cpp",
+        "initializer_list": "cpp",
+        "iomanip": "cpp",
+        "iosfwd": "cpp",
+        "istream": "cpp",
+        "map": "cpp",
+        "mutex": "cpp",
+        "print": "cpp",
+        "queue": "cpp",
+        "set": "cpp",
+        "sstream": "cpp",
+        "stack": "cpp",
+        "streambuf": "cpp",
+        "typeinfo": "cpp",
+        "unordered_map": "cpp",
+        "algorithm": "cpp",
+        "__availability": "c",
+        "__config": "c",
+        "atomic": "c",
+        "bit": "c",
+        "compare": "c",
+        "concepts": "c",
+        "exception": "c",
+        "iterator": "c",
+        "type_traits": "c",
+        "utility": "c",
+        "format": "c",
+        "functional": "c",
+        "numeric": "c",
+        "system_error": "c"
+    },
+
+    "cmake.configureOnOpen": false,
+
+    "cortex-debug.variableUseNaturalFormat": true,
+    "cmsis-csolution.actions": [
+        {
+            "path": "firmware-alif.csolution.yaml",
+            "target": "HE",
+            "config": {
+                "debug": "Alif Ensemble Debug (Cortex-Debug)"
+            }
+        },
+        {
+            "path": "firmware-alif.csolution.yaml",
+            "target": "HP",
+            "config": {
+                "debug": "Alif Ensemble Debug (Cortex-Debug)"
+            }
+        },
+        {
+            "path": "firmware-alif.csolution.yaml",
+            "target": "HP_SRAM",
+            "config": {
+                "debug": "Alif Ensemble Debug (Cortex-Debug)"
+            }
+        },
+        {
+            "path": "firmware-alif.csolution.yaml",
+            "target": "HE_DEVKIT",
+            "config": {
+                "debug": "Alif Ensemble Debug (Cortex-Debug)"
+            }
+        },
+        {
+            "path": "firmware-alif.csolution.yaml",
+            "target": "HP_DEVKIT",
+            "config": {
+                "debug": "Alif Ensemble Debug (Cortex-Debug)"
+            }
+        },
+        {
+            "path": "firmware-alif.csolution.yaml",
+            "target": "HP_SRAM_DEVKIT",
+            "config": {
+                "debug": "Alif Ensemble Debug (Cortex-Debug)"
+            }
+        },
+    ],
+
+    "clangd.arguments": [],
+
+    // set me for debugging
+    //"cortex-debug.armToolchainPath": "path/arm/toolchain",
+    //"cortex-debug.JLinkGDBServerPath": "path/JLinkGDBServer",
+
+}
