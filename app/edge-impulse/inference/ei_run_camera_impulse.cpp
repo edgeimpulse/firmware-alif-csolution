@@ -162,6 +162,8 @@ void ei_start_impulse(bool continuous, bool debug, bool use_max_uart_speed)
         ei_sleep(100);
     }
 
+    run_classifier_init();
+
     inference_task_start();
 }
 
@@ -179,6 +181,7 @@ void ei_stop_impulse(void)
         dev->set_default_data_output_baudrate();
         ei_sleep(100);
     }
+    run_classifier_deinit();
 
     state = INFERENCE_STOPPED;
 }
