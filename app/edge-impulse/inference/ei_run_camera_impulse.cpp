@@ -39,6 +39,7 @@
 #error "Camera not supported on Alif Devkit E1C devkit"
 #else
 #include "edge-impulse-sdk/classifier/ei_run_classifier.h"
+#include "edge-impulse-sdk/classifier/ei_print_results.h"
 #include "edge-impulse-sdk/dsp/image/image.hpp"
 #include "firmware-sdk/ei_camera_interface.h"
 #include "ingestion-sdk-platform/sensor/ei_camera.h"
@@ -277,7 +278,7 @@ void ei_run_impulse(void)
     }
     //ei_free(snapshot_buf);
 
-    display_results(&ei_default_impulse, &result);
+    ei_print_results(&ei_default_impulse, &result);
 #if (defined(LCD_SUPPORTED) && (LCD_SUPPORTED == 1))
     lcd_set_result(&result);
 #endif
