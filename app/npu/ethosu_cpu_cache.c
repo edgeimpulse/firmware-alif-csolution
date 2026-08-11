@@ -66,8 +66,8 @@ static cpu_cache_state* ethosu_get_cpu_cache_state(void)
 
 bool __attribute__((weak)) ethosu_area_needs_flush_dcache(const uint32_t *p, size_t bytes)
 {
-    //UNUSED(p);
-    //UNUSED(bytes);
+    (void)p;
+    (void)bytes;
 #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
     return SCB->CCR & SCB_CCR_DC_Msk;
 #else
@@ -78,8 +78,8 @@ bool __attribute__((weak)) ethosu_area_needs_flush_dcache(const uint32_t *p, siz
 
 bool __attribute__((weak)) ethosu_area_needs_invalidate_dcache(const uint32_t *p, size_t bytes)
 {
-    //UNUSED(p);
-    //UNUSED(bytes);
+    (void)p;
+    (void)bytes;
 #if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
     return SCB->CCR & SCB_CCR_DC_Msk;
 #else
@@ -95,10 +95,17 @@ void ethosu_clear_cache_states(void)
     state->dcache_cleaned     = 0;
 }
 
-void ethosu_flush_dcache(uint32_t *p, size_t bytes)
+void ethosu_flush_dcache(const uint64_t *base_addr, const size_t *base_addr_size, int num_base_addr)
 {
-    cpu_cache_state* const state = ethosu_get_cpu_cache_state();
-    if (ethosu_area_needs_flush_dcache(p, bytes)) {
+    bool need_flush = false;
+    for (int i = 0; i < num_base_addr; i++) {
+        if (ethosu_area_needs_flush_dcache((void *)base_addr[i], base_addr_size[i])) {
+            need_flush = true;
+            break;
+        }
+    }
+
+    if (need_flush) {
 
         /**
          * @note We could choose to call the `SCB_CleanDCache_by_Addr` function
@@ -117,39 +124,33 @@ void ethosu_flush_dcache(uint32_t *p, size_t bytes)
          *       maintenance burden in these functions.
          */
 
-        /** Clean the cache if it hasn't been cleaned already  */
-        if (!state->dcache_cleaned) {
-            //trace("Cleaning data cache\n");
-            SCB_CleanDCache();
-
-            /** Assert the cache cleaned state and clear the invalidation
-             *  state. */
-            state->dcache_cleaned     = 1;
-            state->dcache_invalidated = 0;
-        }
+        /** Clean the cache */
+        //trace("Cleaning data cache\n");
+        SCB_CleanDCache();
     } else {
         __DSB();
     }
 }
 
-void ethosu_invalidate_dcache(uint32_t *p, size_t bytes)
+void ethosu_invalidate_dcache(const uint64_t *base_addr, const size_t *base_addr_size, int num_base_addr)
 {
-    cpu_cache_state* const state = ethosu_get_cpu_cache_state();
-    if (ethosu_area_needs_invalidate_dcache(p, bytes)) {
+    bool need_flush = false;
+    for (int i = 0; i < num_base_addr; i++) {
+        if (ethosu_area_needs_invalidate_dcache((void *)base_addr[i], base_addr_size[i])) {
+            need_flush = true;
+            break;
+        }
+    }
+
+    if (need_flush) {
         /**
          * See note in ethosu_flush_dcache function for why we clean the whole
          * cache instead of calling it for specific addresses.
          **/
-        if (!state->dcache_invalidated) {
-            //trace("Invalidating data cache\n");
-            /* Not safe to simply invalidate without cleaning unless we know there are no write-back areas in the system */
-            SCB_CleanInvalidateDCache();
+        //trace("Invalidating data cache\n");
+        /* Not safe to simply invalidate without cleaning unless we know there are no write-back areas in the system */
+        SCB_CleanInvalidateDCache();
 
-            /** Assert the cache invalidation state and clear the clean
-             *  state. */
-            state->dcache_invalidated = 1;
-            state->dcache_cleaned     = 0;
-        }
     } else {
         __DSB();
     }

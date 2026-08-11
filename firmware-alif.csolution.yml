@@ -2,7 +2,7 @@
 solution:
   created-for: cmsis-toolbox@2.6.0
   cdefault:
-  
+
   target-types:
     - type: HE
       device: Alif Semiconductor::AE722F80F55D5LS:M55_HE
@@ -23,8 +23,8 @@ solution:
         - define BOARD_ALIF_DEVKIT_VARIANT: 5
         - LCD_SUPPORTED: 1
     - type: HP_SRAM
-      device: Alif Semiconductor::AE722F80F55D5LS:M55_HP    
-      compiler: GCC  
+      device: Alif Semiconductor::AE722F80F55D5LS:M55_HP
+      compiler: GCC
       define:
         - "CORE_M55_HP"
         - "EI_CLASSIFIER_ALLOCATION_STATIC"
@@ -32,7 +32,7 @@ solution:
         - define BOARD_ALIF_DEVKIT_VARIANT: 5
         - LCD_SUPPORTED: 1
     - type: HE_DEVKIT
-      device: Alif Semiconductor::AE722F80F55D5LS:M55_HE      
+      device: Alif Semiconductor::AE722F80F55D5LS:M55_HE
       compiler: GCC
       define:
         - "CORE_M55_HE"
@@ -41,7 +41,7 @@ solution:
         - define BOARD_ALIF_DEVKIT_VARIANT: 4
         - LCD_SUPPORTED: 0
     - type: HP_DEVKIT
-      device: Alif Semiconductor::AE722F80F55D5LS:M55_HP      
+      device: Alif Semiconductor::AE722F80F55D5LS:M55_HP
       compiler: GCC
       define:
         - "CORE_M55_HP"
@@ -105,8 +105,8 @@ solution:
         - +E1C
     - pack: ARM::CMSIS@6.0.0
     - pack: ARM::CMSIS-DSP@1.15.0
-    - pack: ARM::CMSIS-NN@4.1.0    
-    - pack: Arm::ethos-u-core-driver@1.24.11
+    - pack: ARM::CMSIS-NN@4.1.0
+    - pack: ARM::ethos-u-core-driver@1.26.2
     - pack: ARM::CMSIS-FreeRTOS@10.5.1
     - pack: AlifSemiconductor::Dave2DDriver@1.0.1
       for-context:
@@ -118,7 +118,7 @@ solution:
       - +HE
       - +HP
       - +HP_SRAM
-    
+
 
   projects:
     - project: firmware-alif.cproject.yml

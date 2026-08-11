@@ -61,17 +61,19 @@ bool ethosu_area_needs_invalidate_dcache(const uint32_t *p, size_t bytes);
 /**
  * @brief   Flush/clean the data cache by address and size. Passing NULL as p argument
  *          expects the whole cache to be flushed.
- * @param[in]   p       Pointer to the start address.
- * @param[in]   bytes   Number of bytes to flush beginning at start address.
+ * @param base_addr         Array of 32 byte aligned base addresses
+ * @param base_addr_size    Array with size per each base addr entry
+ * @param num_base_addr     Number of base addr entries
  */
-void ethosu_flush_dcache(uint32_t *p, size_t bytes);
+void ethosu_flush_dcache(const uint64_t *base_addr, const size_t *base_addr_size, int num_base_addr);
 
 /**
  * @brief   Invalidate the data cache by address and size. Passing NULL as p argument
  *          expects the whole cache to be invalidated.
- * @param[in]   p       Pointer to the start address.
- * @param[in]   bytes   Number of bytes to flush beginning at start address.
+ * @param base_addr         Array of 32 byte aligned base addresses
+ * @param base_addr_size    Array with size per each base addr entry
+ * @param num_base_addr     Number of base addr entries
  */
-void ethosu_invalidate_dcache(uint32_t *p, size_t bytes);
+void ethosu_invalidate_dcache(const uint64_t *base_addr, const size_t *base_addr_size, int num_base_addr);
 
 #endif /* ETHOSU_CPU_CACHE */

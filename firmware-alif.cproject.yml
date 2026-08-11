@@ -141,12 +141,12 @@ project:
     - TF_LITE_STATIC_MEMORY
 
   components:
-    # needed for Alif Ensemble support    
+    # needed for Alif Ensemble support
     - component: ARM::CMSIS:CORE
     - component: ARM::CMSIS:DSP
     - component: ARM::CMSIS:NN Lib
-    - component: Arm::Machine Learning:NPU Support:Ethos-U Driver&Generic U55
-    
+    - component: ARM::Machine Learning:NPU Support:Ethos-U Driver&Generic U55
+
     # FreeRTOS components
     - component: ARM::RTOS&FreeRTOS:Core&Cortex-M
     - component: ARM::RTOS&FreeRTOS:Config&FreeRTOS
@@ -199,7 +199,7 @@ project:
     # - component: AlifSemiconductor::Device:SOC Peripherals:WDT
 
     # - component: AlifSemiconductor::Device:OSPI XIP:core
-    # - component: AlifSemiconductor::Device:OSPI XIP:utility    
+    # - component: AlifSemiconductor::Device:OSPI XIP:utility
 
     - component: AlifSemiconductor::Device:SOC Peripherals:MHU
     - component: AlifSemiconductor::Device:SE runtime Services:core&Source
@@ -215,7 +215,7 @@ project:
       not-for-context:
         - +E1C
     # - component: AlifSemiconductor::BSP:External peripherals:OSPI Flash ISSI
-  
+
 
     # D/AVE2D driver
     - component: AlifSemiconductor::Graphics:DAVE2D:Layer2
@@ -260,7 +260,7 @@ project:
       - +HE
       - +HP
       - +HP_SRAM
-    - component: AlifSemiconductor::Graphics:AIPL:Bayer    
+    - component: AlifSemiconductor::Graphics:AIPL:Bayer
       for-context:
       - +HE
       - +HP
