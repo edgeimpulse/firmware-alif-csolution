@@ -14,7 +14,6 @@ project:
             - +HP_SRAM
     - group: EdgeImpulse
       files:
-        - file: app/edge-impulse/ingestion-sdk-platform/alif-e7/ei_classifier_porting.cpp
         - file: app/edge-impulse/ingestion-sdk-platform/alif-e7/ei_device_alif_e7.cpp
         - file: app/edge-impulse/ingestion-sdk-platform/alif-e7/ei_at_handlers.cpp
         - file: app/edge-impulse/ingestion-sdk-platform/sensor/ei_microphone.cpp
@@ -125,6 +124,7 @@ project:
     - ETHOSU55
     - EI_ETHOS
     - EI_ALIF_ADDR_TRANSLATION
+    - EI_PORTING_ALIF: 1
     - ARM_NPU
     - ETHOS_U_NPU_ID: 55
     - ETHOS_U_NPU_MEMORY_MODE: Shared_Sram
